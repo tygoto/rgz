@@ -2,6 +2,7 @@
 name = "rgz_transport"
 version = "0.1.0"
 edition = "2021"
+description = "A Rust implementation of gz-transport"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tygoto/rgz"
 

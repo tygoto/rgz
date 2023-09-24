@@ -2,6 +2,7 @@
 name = "rgz"
 version = "0.1.0"
 edition = "2021"
+description = "Robot simulator compatible with Gazebo"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tygoto/rgz"
 keywords = ["gazebo", "robotics", "simulation"]
