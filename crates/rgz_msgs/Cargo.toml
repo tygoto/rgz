@@ -3,7 +3,8 @@ name = "rgz_msgs"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-include = ["Cargo.toml", "src/**/*.rs", "build.rs", "gz-msgs/**/*.proto"]
+include = ["Cargo.toml", "src/**/*.rs", "build.rs"]
+repository = "https://github.com/tygoto/rgz"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
