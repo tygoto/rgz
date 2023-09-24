@@ -2,6 +2,7 @@
 name = "rgz"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,8 +12,8 @@ members = [
 ]
 
 [dependencies]
-rgz_msgs = { path= "crates/rgz_msgs" }
-rgz_transport = { path= "crates/rgz_transport" }
+rgz_msgs = { path= "crates/rgz_msgs", version = "0.1.0"}
+rgz_transport = { path= "crates/rgz_transport", version = "0.1.0"}
 tokio = { version = "1.32.0", features = ["full"] }
 anyhow = "1.0"
 tracing = "0.1"
