@@ -13,3 +13,29 @@ members = [
 [dependencies]
 rgz_msgs = { path= "crates/rgz_msgs" }
 rgz_transport = { path= "crates/rgz_transport" }
+tokio = { version = "1.32.0", features = ["full"] }
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+prost = "0.11.9"
+prost-types = "0.11.9"
+
+[[example]]
+name = "publisher"
+path = "examples/transport/publisher.rs"
+
+[[example]]
+name = "subscriber"
+path = "examples/transport/subscriber.rs"
+
+[[example]]
+name = "requester"
+path = "examples/transport/requester.rs"
+
+[[example]]
+name = "responser"
+path = "examples/transport/responser.rs"
+
+[[example]]
+name = "lidar_node"
+path = "examples/transport/lidar_node.rs"
