@@ -6,7 +6,8 @@ mod node;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::oneshot;
 pub use options::{AdvertiseOptions, NodeOptions};
-pub use node::Node;
+pub use node::{Node, Publisher};
+
 use crate::discovery::DiscoveryPublisher;
 use crate::transport::{PublishMessage, RequestMessage, ReplyMessage};
 

@@ -6,7 +6,7 @@
 use anyhow::Result;
 use tokio::signal;
 use rgz::msgs::{Twist, Vector3d, LaserScan};
-use rgz::transport::node::{Node};
+use rgz::transport::{Node};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -27,7 +27,8 @@ async fn main() -> Result<()> {
                 twist.linear = Some(Vector3d { x: 0.0, ..Default::default() });
                 twist.angular = Some(Vector3d { z: 0.5, ..Default::default() });
             };
-            p.publish(twist).await?;
+            p.publish(twist)?;
+
             Ok(())
         }
     }).await?;

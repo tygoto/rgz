@@ -1,7 +1,7 @@
 use anyhow::Result;
 use tokio::signal;
 
-use rgz::transport::node::{Node};
+use rgz::transport::{Node};
 use rgz::msgs::StringMsg;
 
 #[tokio::main]

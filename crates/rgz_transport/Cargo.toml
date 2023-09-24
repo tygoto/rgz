@@ -1,6 +1,6 @@
 [package]
 name = "rgz_transport"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A Rust implementation of gz-transport"
 license = "MIT OR Apache-2.0"
@@ -11,8 +11,8 @@ repository = "https://github.com/tygoto/rgz"
 [dependencies]
 rgz_msgs = { path = "../rgz_msgs", version = "0.1.0"}
 anyhow = "1.0"
-prost = "0.11.9"
-prost-types = "0.11.9"
+prost = "0.12"
+prost-types = "0.12"
 async-trait = "0.1.51"
 tokio = { version = "1.32.0", features = ["full"] }
 uuid = { version = "1.3.1", features = ["v4"] }

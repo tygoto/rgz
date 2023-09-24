@@ -7,7 +7,7 @@ use tokio::runtime;
 use tokio::select;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Sender, Receiver};
-use rgz_transport::node::Node;
+use rgz_transport::Node;
 use rgz_msgs as msgs;
 
 pub(crate) enum ServiceTopic {

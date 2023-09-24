@@ -1,6 +1,6 @@
 [package]
 name = "rgz"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Robot simulator compatible with Gazebo"
 license = "MIT OR Apache-2.0"
@@ -13,32 +13,46 @@ members = [
     "crates/*",
 ]
 
+[features]
+default = ["rgz_sim", "transport"]
+transport = [
+    "rgz_transport",
+    "rgz_msgs"
+]
+
 [dependencies]
-rgz_msgs = { path= "crates/rgz_msgs", version = "0.1.0"}
-rgz_transport = { path= "crates/rgz_transport", version = "0.1.0"}
+rgz_msgs = { path= "crates/rgz_msgs", version = "0.1", optional = true }
+rgz_transport = { path= "crates/rgz_transport", version = "0.1", optional = true}
+rgz_sim = { path= "crates/rgz_sim", version = "0.1", optional = true}
+
 tokio = { version = "1.32.0", features = ["full"] }
-anyhow = "1.0"
+anyhow = "1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-prost = "0.11.9"
-prost-types = "0.11.9"
+
 
 [[example]]
 name = "publisher"
 path = "examples/transport/publisher.rs"
+required-features = ["transport"]
 
 [[example]]
 name = "subscriber"
 path = "examples/transport/subscriber.rs"
+required-features = ["transport"]
 
 [[example]]
 name = "requester"
 path = "examples/transport/requester.rs"
+required-features = ["transport"]
 
 [[example]]
 name = "responser"
 path = "examples/transport/responser.rs"
+required-features = ["transport"]
 
 [[example]]
 name = "lidar_node"
 path = "examples/transport/lidar_node.rs"
+required-features = ["transport"]
+

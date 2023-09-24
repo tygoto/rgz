@@ -1,5 +1,9 @@
 mod discovery;
 mod utils;
-pub mod node;
+mod node;
 mod transport;
 mod dispatcher;
+
+pub use node::{
+    Node, NodeOptions, AdvertiseOptions, Publisher
+};

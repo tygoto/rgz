@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 use tokio::time::sleep;
 
-use rgz::transport::node::{Node};
+use rgz::transport::{Node};
 use rgz::msgs::StringMsg;
 
 #[tokio::main]
@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
             ..Default::default()
         };
         println!("Published message: {}", &str_msg.data);
-        publisher.publish(str_msg).await?;
+        publisher.publish(str_msg)?;
         sleep(Duration::from_millis(100)).await;
     }
 

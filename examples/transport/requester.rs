@@ -2,7 +2,7 @@ use std::env;
 use anyhow::Result;
 use std::time::Duration;
 use rgz::msgs::{StringMsg};
-use rgz::transport::node::{Node};
+use rgz::transport::{Node};
 
 #[tokio::main]
 async fn main() -> Result<()> {

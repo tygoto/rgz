@@ -188,7 +188,7 @@ impl Node {
         };
         let pub_type = DiscoveryPubType::SrvPub(service_publisher);
 
-        let publisher = DiscoveryPublisher {
+        let discovery_publisher = DiscoveryPublisher {
             topic: fully_qualified_topic.to_string(),
             address: "unset".to_string(),
             process_uuid: "unset".to_string(),
@@ -202,7 +202,7 @@ impl Node {
 
         let event_sender = {
             let mut node_shared = self.node_shared.lock().unwrap();
-            node_shared.advertise_service(publisher, request_sender)?
+            node_shared.advertise_service(discovery_publisher, request_sender)?
         };
 
         tokio::spawn(async move {
@@ -301,7 +301,8 @@ impl <T> Publisher <T> where T: GzMessage
         }
     }
 
-    pub async fn publish(&self, msg: T) -> Result<()> {
+    pub fn publish(&self, msg: T) -> Result<()> {
+        // TODO: Implement throttling
 
         self.sender.send(NodeEvent::Publish(PublishMessage {
             topic: self.topic.clone(),

@@ -2,7 +2,7 @@ use anyhow::Result;
 use tokio::signal;
 
 use rgz::msgs::{StringMsg};
-use rgz::transport::node::{Node};
+use rgz::transport::{Node};
 
 async fn srv_echo(req: StringMsg) -> Result<StringMsg>{
     println!("ECHO: {}", req.data);
