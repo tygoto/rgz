@@ -1,6 +1,7 @@
 use std::future::Future;
 use std::marker::PhantomData;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use anyhow::{bail, Result};
@@ -39,7 +40,7 @@ impl Node {
         }
     }
 
-    pub async fn advertise<T>(&self, topic: &str, options: Option<AdvertiseOptions>) -> Result<Publisher<T>>
+    pub fn advertise<T>(&self, topic: &str, options: Option<AdvertiseOptions>) -> Result<Publisher<T>>
         where T: GzMessage
     {
         let advertise_options = options.unwrap_or_default();
@@ -63,7 +64,7 @@ impl Node {
         };
         let pub_type = DiscoveryPubType::MsgPub(message_publisher);
 
-        let publisher = DiscoveryPublisher {
+        let discovery_publisher = DiscoveryPublisher {
             topic: fully_qualified_topic.to_string(),
             address: "unset".to_string(),
             process_uuid: "unset".to_string(),
@@ -74,11 +75,8 @@ impl Node {
 
         let event_sender = {
             let mut node_shared = self.node_shared.lock().unwrap();
-            node_shared.advertise(publisher)?
+            node_shared.advertise(discovery_publisher)?
         };
-
-        // Wait for the publisher to be registered
-        tokio::time::sleep(Duration::from_millis(200)).await;
 
         Ok(Publisher::<T>::new(&fully_qualified_topic, advertise_options, event_sender))
     }
@@ -286,23 +284,42 @@ pub struct Publisher <T>{
     options: AdvertiseOptions,
     sender: UnboundedSender<NodeEvent>,
     last_sent_msg: Option<Instant>,
+    is_ready: Arc<AtomicBool>,
     _phantom: PhantomData<T>,
 }
 
 impl <T> Publisher <T> where T: GzMessage
 {
     fn new(topic: &str, options: AdvertiseOptions, sender: UnboundedSender<NodeEvent>) -> Self {
+
+        let is_ready = Arc::new(AtomicBool::new(false));
+        let is_ready_clone = is_ready.clone();
+        tokio::spawn(async move {
+            // Wait for the publisher to be registered
+            tokio::time::sleep(Duration::from_millis(150)).await;
+            is_ready_clone.store(true, Ordering::Relaxed);
+        });
+
         Publisher {
             topic: topic.to_string(),
             options,
             sender,
             last_sent_msg: None,
+            is_ready,
             _phantom: PhantomData,
         }
     }
 
+    pub fn is_ready(&self) -> bool {
+        self.is_ready.load(Ordering::Relaxed)
+    }
+
     pub fn publish(&self, msg: T) -> Result<()> {
         // TODO: Implement throttling
+
+        if !self.is_ready.load(Ordering::Relaxed) {
+            bail!("Publisher not ready");
+        }
 
         self.sender.send(NodeEvent::Publish(PublishMessage {
             topic: self.topic.clone(),
