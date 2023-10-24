@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use anyhow::{bail, Result};
+use std::fmt::Debug;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::dispatcher::Dispatcher;
@@ -36,10 +36,10 @@ impl Subscriber {
     }
 
     pub fn dispatch(&mut self, publish_message: PublishMessage) -> Result<()> {
-        if let Some(sender) = self.sender.as_ref(){
+        if let Some(sender) = self.sender.as_ref() {
             sender.send(publish_message)?;
             Ok(())
-        }else {
+        } else {
             bail!("Sender not found");
         }
     }
@@ -51,7 +51,6 @@ impl Subscriber {
     pub(crate) fn process_uuid(&self) -> &str {
         self.p_uuid.as_str()
     }
-
 }
 
 impl Dispatcher for Subscriber {

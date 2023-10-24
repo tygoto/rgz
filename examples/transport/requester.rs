@@ -1,8 +1,8 @@
-use std::env;
 use anyhow::Result;
+use rgz::msgs::StringMsg;
+use rgz::transport::Node;
+use std::env;
 use std::time::Duration;
-use rgz::msgs::{StringMsg};
-use rgz::transport::{Node};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -21,7 +21,9 @@ async fn main() -> Result<()> {
     };
     let request = Some(str_msg);
     let timeout = Some(Duration::from_secs(1));
-    let res = node.request::<StringMsg,StringMsg>(topic, request, timeout).await?;
+    let res = node
+        .request::<StringMsg, StringMsg>(topic, request, timeout)
+        .await?;
     println!("RES: {:?}", res);
     Ok(())
 }

@@ -1,16 +1,16 @@
+use anyhow::{bail, Result};
 use std::collections::HashMap;
-use anyhow::{Result, bail};
 
 use crate::discovery::DiscoveryScope;
-use crate::utils::topic as topic_utils;
 use crate::utils::net as net_utils;
+use crate::utils::topic as topic_utils;
 
 const UNTHROTTLED: u64 = u64::MAX;
 
 #[derive(Debug, Clone)]
 pub struct AdvertiseOptions {
     scope: DiscoveryScope,
-    msgs_per_sec: u64
+    msgs_per_sec: u64,
 }
 impl AdvertiseOptions {
     pub fn new() -> Self {
@@ -72,7 +72,7 @@ impl NodeOptions {
         &self.partition
     }
 
-    pub fn set_partition(&mut self, partition: &str){
+    pub fn set_partition(&mut self, partition: &str) {
         self.partition = partition.to_string();
     }
 
@@ -88,11 +88,13 @@ impl NodeOptions {
         if let Some(remapped_topic) = self.topics_remap.get(from_topic) {
             bail!(
                 "Topic name [{}] has already been remapped to [{}]",
-                from_topic, remapped_topic
+                from_topic,
+                remapped_topic
             );
         }
 
-        self.topics_remap.insert(from_topic.to_string(), to_topic.to_string());
+        self.topics_remap
+            .insert(from_topic.to_string(), to_topic.to_string());
 
         Ok(())
     }
@@ -101,7 +103,6 @@ impl NodeOptions {
         // Is there any remap for this topic?
         self.topics_remap.get(from_topic)
     }
-
 }
 
 impl Default for NodeOptions {
@@ -109,5 +110,3 @@ impl Default for NodeOptions {
         Self::new()
     }
 }
-
-

@@ -1,26 +1,22 @@
-mod component;
-mod spawn;
-mod render;
-pub(crate) mod utils;
 mod api;
-mod service;
+mod component;
 mod event;
+mod render;
+mod service;
+mod spawn;
+pub(crate) mod utils;
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
-
-use crate::gz::event::{PoseEvent, SceneEvent};
-use crate::gz::spawn::spawn_scene;
 pub(crate) use crate::gz::api::GzAPI;
 use crate::gz::component::{GzId, GzScene};
-
+use crate::gz::event::{PoseEvent, SceneEvent};
+use crate::gz::spawn::spawn_scene;
 
 pub struct GzPlugin;
 impl Default for GzPlugin {
     fn default() -> Self {
-        GzPlugin {
-
-        }
+        GzPlugin {}
     }
 }
 impl Plugin for GzPlugin {
@@ -38,18 +34,15 @@ fn pre_startup_system(mut api: ResMut<GzAPI>) {
     api.init();
 }
 
-fn recv_response(
-    scene_event: EventWriter<SceneEvent>,
-    mut api: ResMut<GzAPI>
-){
+fn recv_response(scene_event: EventWriter<SceneEvent>, mut api: ResMut<GzAPI>) {
     api.recv_response(scene_event);
 }
 
 fn recv_subscription(
     pose_event: EventWriter<PoseEvent>,
     scene_event: EventWriter<SceneEvent>,
-    mut api: ResMut<GzAPI>
-){
+    mut api: ResMut<GzAPI>,
+) {
     api.recv_subscription(pose_event, scene_event);
 }
 
@@ -60,20 +53,22 @@ fn update_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut events: EventReader<SceneEvent>,
-    mut query: Query<(Entity, &mut GzScene)>
-){
+    mut query: Query<(Entity, &mut GzScene)>,
+) {
     for event in events.iter() {
         match event {
             SceneEvent::Renew(scene) => {
                 for (parent, _) in &mut query {
                     commands.entity(parent).despawn_recursive();
                 }
-                spawn_scene(&mut commands,
-                            &mut ambient_light,
-                            &mut clear_color,
-                            &mut meshes,
-                            &mut materials,
-                            scene.clone());
+                spawn_scene(
+                    &mut commands,
+                    &mut ambient_light,
+                    &mut clear_color,
+                    &mut meshes,
+                    &mut materials,
+                    scene.clone(),
+                );
             }
             SceneEvent::Update(scene) => {
                 // update_scene(&mut commands, &mut meshes, &mut materials, scene.clone());
@@ -82,11 +77,7 @@ fn update_scene(
     }
 }
 
-
-fn update_pose(
-    mut query: Query<(&mut Transform, &GzId)>,
-    mut events: EventReader<PoseEvent>,
-){
+fn update_pose(mut query: Query<(&mut Transform, &GzId)>, mut events: EventReader<PoseEvent>) {
     for event in events.iter() {
         for (mut transform, gz_id) in &mut query {
             if let Some(pose) = event.pose_map.get(&gz_id.id) {

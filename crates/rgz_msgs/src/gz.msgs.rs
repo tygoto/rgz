@@ -33,495 +33,6 @@ pub mod header {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CameraCmd {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub follow_model: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Discovery {
-    /// / \brief Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Version of the discovery protocol.
-    #[prost(uint32, tag = "2")]
-    pub version: u32,
-    /// / \brief Process UUID.
-    #[prost(string, tag = "3")]
-    pub process_uuid: ::prost::alloc::string::String,
-    /// / \brief The type of this message.
-    #[prost(enumeration = "discovery::Type", tag = "4")]
-    pub r#type: i32,
-    /// / \brief Optional flags.
-    #[prost(message, optional, tag = "5")]
-    pub flags: ::core::option::Option<discovery::Flags>,
-    /// / \brief Optional subscriber or publisher information.
-    #[prost(oneof = "discovery::DiscContents", tags = "6, 7")]
-    pub disc_contents: ::core::option::Option<discovery::DiscContents>,
-}
-/// Nested message and enum types in `Discovery`.
-pub mod discovery {
-    /// / \brief Discovery flags.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Flags {
-        /// / \brief Flag set when a discovery message is relayed.
-        #[prost(bool, tag = "1")]
-        pub relay: bool,
-        /// / \brief Flag set when we want to avoid to relay a discovery message.
-        /// / This is used to avoid loops.
-        #[prost(bool, tag = "2")]
-        pub no_relay: bool,
-    }
-    /// / \brief Information about a subscriber.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Subscriber {
-        #[prost(string, tag = "1")]
-        pub topic: ::prost::alloc::string::String,
-    }
-    /// / \brief Information about a publisher.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Publisher {
-        /// / \brief Topic name.
-        #[prost(string, tag = "1")]
-        pub topic: ::prost::alloc::string::String,
-        /// / \brief ZeroMQ address of the publisher.
-        #[prost(string, tag = "2")]
-        pub address: ::prost::alloc::string::String,
-        /// / \brief Process UUID of the publisher.
-        #[prost(string, tag = "3")]
-        pub process_uuid: ::prost::alloc::string::String,
-        /// / \brief Node UUID of the publisher.
-        #[prost(string, tag = "4")]
-        pub node_uuid: ::prost::alloc::string::String,
-        /// / \brief The scope of this publisher.
-        #[prost(enumeration = "publisher::Scope", tag = "5")]
-        pub scope: i32,
-        /// / \brief Information about a message or service publisher.
-        #[prost(oneof = "publisher::PubType", tags = "6, 7")]
-        pub pub_type: ::core::option::Option<publisher::PubType>,
-    }
-    /// Nested message and enum types in `Publisher`.
-    pub mod publisher {
-        /// / \brief Information about a message publisher.
-        #[derive(::rgz_derive::GzMessage)]
-        #[allow(clippy::derive_partial_eq_without_eq)]
-        #[derive(Clone, PartialEq, ::prost::Message)]
-        pub struct MessagePublisher {
-            /// / \brief ZeroMQ control address of the publisher.
-            /// / \todo(caguero) Is this the same as 'socket_id' in the
-            /// / ServicePublisher message?
-            #[prost(string, tag = "1")]
-            pub ctrl: ::prost::alloc::string::String,
-            /// / \brief Message type advertised by this publisher.
-            #[prost(string, tag = "2")]
-            pub msg_type: ::prost::alloc::string::String,
-            /// / \brief Whether the publication has been throttled.
-            #[prost(bool, tag = "3")]
-            pub throttled: bool,
-            /// / \brief The maximum number of messages per second to be published.
-            #[prost(uint64, tag = "4")]
-            pub msgs_per_sec: u64,
-        }
-        /// / \brief Information about service provider.
-        #[derive(::rgz_derive::GzMessage)]
-        #[allow(clippy::derive_partial_eq_without_eq)]
-        #[derive(Clone, PartialEq, ::prost::Message)]
-        pub struct ServicePublisher {
-            /// / \brief ZeroMQ socket ID used by this publisher.
-            #[prost(string, tag = "1")]
-            pub socket_id: ::prost::alloc::string::String,
-            /// / \brief The name of the request's protobuf message advertised.
-            #[prost(string, tag = "2")]
-            pub request_type: ::prost::alloc::string::String,
-            /// / \brief The name of the response's protobuf message advertised.
-            #[prost(string, tag = "3")]
-            pub response_type: ::prost::alloc::string::String,
-        }
-        /// / \brief Defines the different options for the scope of a topic/service.
-        #[derive(
-            Clone,
-            Copy,
-            Debug,
-            PartialEq,
-            Eq,
-            Hash,
-            PartialOrd,
-            Ord,
-            ::prost::Enumeration
-        )]
-        #[repr(i32)]
-        pub enum Scope {
-            /// / \brief Topic/service only available to subscribers in the same
-            /// / process as the publisher.
-            Process = 0,
-            /// / \brief Topic/service only available to subscribers in the same
-            /// / machine as the publisher.
-            Host = 1,
-            /// / \brief Topic/service available to any subscriber.
-            All = 2,
-        }
-        impl Scope {
-            /// String value of the enum field names used in the ProtoBuf definition.
-            ///
-            /// The values are not transformed in any way and thus are considered stable
-            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-            pub fn as_str_name(&self) -> &'static str {
-                match self {
-                    Scope::Process => "PROCESS",
-                    Scope::Host => "HOST",
-                    Scope::All => "ALL",
-                }
-            }
-            /// Creates an enum from field names used in the ProtoBuf definition.
-            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-                match value {
-                    "PROCESS" => Some(Self::Process),
-                    "HOST" => Some(Self::Host),
-                    "ALL" => Some(Self::All),
-                    _ => None,
-                }
-            }
-        }
-        /// / \brief Information about a message or service publisher.
-        #[allow(clippy::derive_partial_eq_without_eq)]
-        #[derive(Clone, PartialEq, ::prost::Oneof)]
-        pub enum PubType {
-            /// / \brief Message publisher.
-            #[prost(message, tag = "6")]
-            MsgPub(MessagePublisher),
-            /// / \brief Service provider.
-            #[prost(message, tag = "7")]
-            SrvPub(ServicePublisher),
-        }
-    }
-    /// / \brief Type of discovery message.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum Type {
-        /// / \brief Type not initialized.
-        Uninitialized = 0,
-        /// / \brief Advertise message.
-        Advertise = 1,
-        /// / \brief Subscribe message.
-        Subscribe = 2,
-        /// / \brief Unadvertise message.
-        Unadvertise = 3,
-        /// / \brief Hearbeat message.
-        Heartbeat = 4,
-        /// / \brief Bye message.
-        Bye = 5,
-        /// / \brief New connection message.
-        NewConnection = 6,
-        /// / \brief End connection message.
-        EndConnection = 7,
-    }
-    impl Type {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Type::Uninitialized => "UNINITIALIZED",
-                Type::Advertise => "ADVERTISE",
-                Type::Subscribe => "SUBSCRIBE",
-                Type::Unadvertise => "UNADVERTISE",
-                Type::Heartbeat => "HEARTBEAT",
-                Type::Bye => "BYE",
-                Type::NewConnection => "NEW_CONNECTION",
-                Type::EndConnection => "END_CONNECTION",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "UNINITIALIZED" => Some(Self::Uninitialized),
-                "ADVERTISE" => Some(Self::Advertise),
-                "SUBSCRIBE" => Some(Self::Subscribe),
-                "UNADVERTISE" => Some(Self::Unadvertise),
-                "HEARTBEAT" => Some(Self::Heartbeat),
-                "BYE" => Some(Self::Bye),
-                "NEW_CONNECTION" => Some(Self::NewConnection),
-                "END_CONNECTION" => Some(Self::EndConnection),
-                _ => None,
-            }
-        }
-    }
-    /// / \brief Optional subscriber or publisher information.
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum DiscContents {
-        /// / \brief Subscriber information.
-        #[prost(message, tag = "6")]
-        Sub(Subscriber),
-        /// / \brief Publisher information.
-        #[prost(message, tag = "7")]
-        Pub(Publisher),
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Response {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(int32, tag = "2")]
-    pub id: i32,
-    #[prost(string, tag = "3")]
-    pub request: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub response: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub r#type: ::prost::alloc::string::String,
-    #[prost(bytes = "vec", tag = "6")]
-    pub serialized_data: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Version {
-    /// / \brief Major version.
-    #[prost(int32, tag = "1")]
-    pub major: i32,
-    /// / \brief Minor version.
-    #[prost(int32, tag = "2")]
-    pub minor: i32,
-    /// / \brief Patch version.
-    #[prost(int32, tag = "3")]
-    pub patch: i32,
-    /// / \brief Pre-release version.
-    #[prost(string, tag = "4")]
-    pub prerelease: ::prost::alloc::string::String,
-    /// / \brief Build version.
-    #[prost(string, tag = "5")]
-    pub build: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct VersionRange {
-    /// / \brief Min version.
-    #[prost(message, optional, tag = "1")]
-    pub min: ::core::option::Option<Version>,
-    /// / \brief Max version.
-    #[prost(message, optional, tag = "2")]
-    pub max: ::core::option::Option<Version>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct VersionedName {
-    /// / \brief Version information.
-    #[prost(message, optional, tag = "1")]
-    pub version: ::core::option::Option<Version>,
-    /// / \brief Name associated with the version.
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FuelMetadata {
-    /// / \brief Name of the resource.
-    #[prost(string, tag = "3")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Description of the resource.
-    #[prost(string, tag = "4")]
-    pub description: ::prost::alloc::string::String,
-    /// / \brief Version number of the resource. This version is set by Fuel.
-    #[prost(int32, tag = "5")]
-    pub version: i32,
-    /// / \brief Authors of this resource.
-    #[prost(message, repeated, tag = "6")]
-    pub authors: ::prost::alloc::vec::Vec<fuel_metadata::Contact>,
-    /// / \brief Legal information, such as copyright and license specifications.
-    #[prost(message, optional, tag = "7")]
-    pub legal: ::core::option::Option<fuel_metadata::Legal>,
-    /// / \brief Tags for a resource.
-    #[prost(string, repeated, tag = "8")]
-    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// A list of key-value pairs that can contain arbitrary user data.
-    #[prost(map = "string, string", tag = "9")]
-    pub annotations: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    /// / \brief Resources that this resource depends on.
-    #[prost(message, repeated, tag = "10")]
-    pub dependencies: ::prost::alloc::vec::Vec<fuel_metadata::Dependency>,
-    /// / \brief List of tools/libraries with version numbers that are compatible
-    /// / with this resource.
-    #[prost(message, repeated, tag = "11")]
-    pub compatibilities: ::prost::alloc::vec::Vec<fuel_metadata::Compatibility>,
-    /// / \brief Categories associated with this resource.
-    #[prost(message, optional, tag = "12")]
-    pub categories: ::core::option::Option<fuel_metadata::Categories>,
-    /// / \brief A Fuel resource has to be one of the following.
-    #[prost(oneof = "fuel_metadata::ResourceType", tags = "1, 2")]
-    pub resource_type: ::core::option::Option<fuel_metadata::ResourceType>,
-}
-/// Nested message and enum types in `FuelMetadata`.
-pub mod fuel_metadata {
-    /// / \brief Contact information.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Contact {
-        /// / \brief Contact name.
-        #[prost(string, tag = "1")]
-        pub name: ::prost::alloc::string::String,
-        /// / \brief Contact email.
-        #[prost(string, tag = "2")]
-        pub email: ::prost::alloc::string::String,
-    }
-    /// / \brief Legal information, including copyright and license specifications.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Legal {
-        /// / \brief Copyright information, such as "Copyright 1974, John Doe"
-        #[prost(string, tag = "1")]
-        pub copyright: ::prost::alloc::string::String,
-        /// / \brief License, such as "Apache-2.0"
-        #[prost(string, tag = "2")]
-        pub license: ::prost::alloc::string::String,
-    }
-    /// / \brief Information about a model resource.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Model {
-        /// / \brief Main model file, e.g. "model.sdf".
-        #[prost(string, tag = "1")]
-        pub file: ::prost::alloc::string::String,
-        /// / \brief Name and version of the file format used by the file.
-        #[prost(message, optional, tag = "2")]
-        pub file_format: ::core::option::Option<super::VersionedName>,
-    }
-    /// / \brief Information about a world resource.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct World {
-        /// / \brief Main world file, e.g. "world.sdf".
-        #[prost(string, tag = "1")]
-        pub file: ::prost::alloc::string::String,
-        /// / \brief Name and version of the file format used by the file.
-        #[prost(message, optional, tag = "2")]
-        pub file_format: ::core::option::Option<super::VersionedName>,
-    }
-    /// / \brief Definition of a dependency
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Dependency {
-        /// / \brief Dependency uri.
-        #[prost(string, tag = "1")]
-        pub uri: ::prost::alloc::string::String,
-    }
-    /// / \brief A message containing a tool name and a version or range of
-    /// / versions, e.g.
-    /// /   tools { name: "bullet" version_range { min: {major: 3 } } } }
-    /// /   tools { name: "gazebo" version { major: 11 } }
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Compatibility {
-        /// / \brief Name of the tool/library.
-        #[prost(string, tag = "1")]
-        pub name: ::prost::alloc::string::String,
-        /// / \brief If version is omitted, it is assumed that the model is
-        /// / compatible with all versions of the tool.
-        #[prost(oneof = "compatibility::VersionType", tags = "2, 3")]
-        pub version_type: ::core::option::Option<compatibility::VersionType>,
-    }
-    /// Nested message and enum types in `Compatibility`.
-    pub mod compatibility {
-        /// / \brief If version is omitted, it is assumed that the model is
-        /// / compatible with all versions of the tool.
-        #[allow(clippy::derive_partial_eq_without_eq)]
-        #[derive(Clone, PartialEq, ::prost::Oneof)]
-        pub enum VersionType {
-            /// / \brief Exact version that the model is compatible with.
-            #[prost(message, tag = "2")]
-            Version(super::super::Version),
-            /// / \brief A range of compatible versions.
-            #[prost(message, tag = "3")]
-            VersionRange(super::super::VersionRange),
-        }
-    }
-    /// / \brief Categories associated with this resource. The set of
-    /// / Fuel categories are available at
-    /// / <https://fuel.ignitionrobotics.org/1.0/categories.>
-    /// /
-    /// / A limited number of categories can be assigned to a Fuel resource.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Categories {
-        /// / \brief First category.
-        #[prost(string, tag = "1")]
-        pub first: ::prost::alloc::string::String,
-        /// / \brief Second category.
-        #[prost(string, tag = "2")]
-        pub second: ::prost::alloc::string::String,
-    }
-    /// / \brief A Fuel resource has to be one of the following.
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum ResourceType {
-        #[prost(message, tag = "1")]
-        Model(Model),
-        #[prost(message, tag = "2")]
-        World(World),
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ServerControl {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub save_world_name: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub save_filename: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub open_filename: ::prost::alloc::string::String,
-    #[prost(bool, tag = "5")]
-    pub new_world: bool,
-    #[prost(bool, tag = "6")]
-    pub stop: bool,
-    #[prost(bool, tag = "7")]
-    pub clone: bool,
-    #[prost(uint32, tag = "8")]
-    pub new_port: u32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Vector3d {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
@@ -532,255 +43,6 @@ pub struct Vector3d {
     pub y: f64,
     #[prost(double, tag = "4")]
     pub z: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Quaternion {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(double, tag = "2")]
-    pub x: f64,
-    #[prost(double, tag = "3")]
-    pub y: f64,
-    #[prost(double, tag = "4")]
-    pub z: f64,
-    #[prost(double, tag = "5")]
-    pub w: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Pose {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(uint32, tag = "3")]
-    pub id: u32,
-    #[prost(message, optional, tag = "4")]
-    pub position: ::core::option::Option<Vector3d>,
-    #[prost(message, optional, tag = "5")]
-    pub orientation: ::core::option::Option<Quaternion>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TrackVisual {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Name of the visual to track
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Id of the visual to track
-    #[prost(uint32, tag = "3")]
-    pub id: u32,
-    /// / \brief True to have the tracking camera inherit the orientation of
-    /// / the tracked visual.
-    #[prost(bool, tag = "4")]
-    pub inherit_orientation: bool,
-    /// / \brief Minimum follow distance
-    #[prost(double, tag = "5")]
-    pub min_dist: f64,
-    /// / \brief Maximum follow distance
-    #[prost(double, tag = "6")]
-    pub max_dist: f64,
-    /// / \brief If set to true, the position of the camera is fixed.
-    #[prost(bool, tag = "7")]
-    pub r#static: bool,
-    /// / \brief If set to true, the position of the camera is relative to the
-    /// / model reference frame.
-    #[prost(bool, tag = "8")]
-    pub use_model_frame: bool,
-    /// / \brief Position of the camera.
-    #[prost(message, optional, tag = "9")]
-    pub xyz: ::core::option::Option<Vector3d>,
-    /// / \brief If set to true, the camera inherits the yaw rotation of the model.
-    #[prost(bool, tag = "10")]
-    pub inherit_yaw: bool,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GuiCamera {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub view_controller: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "4")]
-    pub pose: ::core::option::Option<Pose>,
-    #[prost(message, optional, tag = "5")]
-    pub track: ::core::option::Option<TrackVisual>,
-    /// / \brief Type of projection: "perspective" or "orthographic".
-    #[prost(string, tag = "6")]
-    pub projection_type: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Plugin {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub filename: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub innerxml: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Gui {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(bool, tag = "2")]
-    pub fullscreen: bool,
-    #[prost(message, optional, tag = "3")]
-    pub camera: ::core::option::Option<GuiCamera>,
-    #[prost(message, repeated, tag = "4")]
-    pub plugin: ::prost::alloc::vec::Vec<Plugin>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Double {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Double data
-    #[prost(double, tag = "2")]
-    pub data: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Pid {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag = "2")]
-    pub target_optional: ::core::option::Option<Double>,
-    #[prost(message, optional, tag = "3")]
-    pub p_gain_optional: ::core::option::Option<Double>,
-    #[prost(message, optional, tag = "4")]
-    pub i_gain_optional: ::core::option::Option<Double>,
-    #[prost(message, optional, tag = "5")]
-    pub d_gain_optional: ::core::option::Option<Double>,
-    #[prost(message, optional, tag = "6")]
-    pub i_max_optional: ::core::option::Option<Double>,
-    #[prost(message, optional, tag = "7")]
-    pub i_min_optional: ::core::option::Option<Double>,
-    #[prost(message, optional, tag = "8")]
-    pub limit_optional: ::core::option::Option<Double>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct JointCmd {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(int32, tag = "3")]
-    pub axis: i32,
-    #[prost(message, optional, tag = "5")]
-    pub position: ::core::option::Option<Pid>,
-    #[prost(message, optional, tag = "6")]
-    pub velocity: ::core::option::Option<Pid>,
-    #[prost(bool, tag = "7")]
-    pub reset: bool,
-    #[prost(message, optional, tag = "8")]
-    pub force_optional: ::core::option::Option<Double>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FloatV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Vector of float data
-    #[prost(float, repeated, tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<f32>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PoseWithCovariance {
-    /// / \brief Pose message.
-    #[prost(message, optional, tag = "1")]
-    pub pose: ::core::option::Option<Pose>,
-    /// / \brief Row-major representation of the 6x6 covariance matrix
-    /// / The orientation parameters use a fixed-axis representation.
-    /// / In order, the parameters are:
-    /// / (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
-    #[prost(message, optional, tag = "2")]
-    pub covariance: ::core::option::Option<FloatV>,
-}
-/// / \brief This message contains information about the performance of
-/// / a sensor in the world.
-/// / If the sensor is a camera then it will publish the frame per second (fps).
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PerformanceSensorMetrics {
-    /// / \brief Sensor name
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief The update rate of the sensor in real time.
-    #[prost(double, tag = "2")]
-    pub real_update_rate: f64,
-    /// / \brief The update rate of the sensor in simulation time.
-    #[prost(double, tag = "3")]
-    pub sim_update_rate: f64,
-    /// / \brief The nominal update rate defined to the sensor.
-    #[prost(double, tag = "4")]
-    pub nominal_update_rate: f64,
-    /// / \brief If the sensor is a camera then this field should be filled
-    /// / with average fps in real time.
-    #[prost(message, optional, tag = "5")]
-    pub fps_optional: ::core::option::Option<Double>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DvlRangeEstimate {
-    /// / \brief Estimate mean.
-    #[prost(double, tag = "1")]
-    pub mean: f64,
-    /// / \brief Estimate variance.
-    #[prost(double, tag = "2")]
-    pub variance: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Vector2d {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(double, tag = "2")]
-    pub x: f64,
-    #[prost(double, tag = "3")]
-    pub y: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DoubleV {
-    /// / \brief Vector of double data
-    #[prost(double, repeated, tag = "1")]
-    pub data: ::prost::alloc::vec::Vec<f64>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1043,6 +305,18 @@ pub struct MeshGeom {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Vector2d {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(double, tag = "2")]
+    pub x: f64,
+    #[prost(double, tag = "3")]
+    pub y: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PlaneGeom {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
@@ -1191,6 +465,213 @@ pub mod geometry {
             }
         }
     }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WebRequest {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub operation: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub topic: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub msg_type: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub compression: ::prost::alloc::string::String,
+    #[prost(double, tag = "6")]
+    pub hz: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Quaternion {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(double, tag = "2")]
+    pub x: f64,
+    #[prost(double, tag = "3")]
+    pub y: f64,
+    #[prost(double, tag = "4")]
+    pub z: f64,
+    #[prost(double, tag = "5")]
+    pub w: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Pose {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "3")]
+    pub id: u32,
+    #[prost(message, optional, tag = "4")]
+    pub position: ::core::option::Option<Vector3d>,
+    #[prost(message, optional, tag = "5")]
+    pub orientation: ::core::option::Option<Quaternion>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Hydra {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// Info for the right paddle
+    #[prost(message, optional, tag = "2")]
+    pub right: ::core::option::Option<hydra::Paddle>,
+    /// Info for the left paddle
+    #[prost(message, optional, tag = "3")]
+    pub left: ::core::option::Option<hydra::Paddle>,
+}
+/// Nested message and enum types in `Hydra`.
+pub mod hydra {
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Paddle {
+        /// Pose of the paddle
+        #[prost(message, optional, tag = "1")]
+        pub pose: ::core::option::Option<super::Pose>,
+        /// The button labeled LB
+        #[prost(bool, tag = "2")]
+        pub button_bumper: bool,
+        /// Button 1
+        #[prost(bool, tag = "3")]
+        pub button_1: bool,
+        /// Button 2
+        #[prost(bool, tag = "4")]
+        pub button_2: bool,
+        /// Button 3
+        #[prost(bool, tag = "5")]
+        pub button_3: bool,
+        /// Button 4
+        #[prost(bool, tag = "6")]
+        pub button_4: bool,
+        /// Button that is activated by pressing down on the joystick.
+        #[prost(bool, tag = "7")]
+        pub button_joy: bool,
+        /// The button located between button 1 and 2.
+        #[prost(bool, tag = "8")]
+        pub button_center: bool,
+        /// Range(-1, 1) where -1 == back, and +1 == forward.
+        #[prost(double, tag = "9")]
+        pub joy_x: f64,
+        /// Range(-1, 1) where -1 == left, and +1 == right.
+        #[prost(double, tag = "10")]
+        pub joy_y: f64,
+        /// Range(0, 1) where 0 is no press, and 1 is full press.
+        #[prost(double, tag = "11")]
+        pub trigger: f64,
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Friction {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Coefficient of friction in the range of \[0..1\].
+    #[prost(double, tag = "2")]
+    pub mu: f64,
+    /// / \brief Second coefficient of friction in the range of \[0..1\].
+    #[prost(double, tag = "3")]
+    pub mu2: f64,
+    /// / \brief Direction of mu1 in the collision local reference frame.
+    #[prost(message, optional, tag = "4")]
+    pub fdir1: ::core::option::Option<Vector3d>,
+    /// / \brief Force dependent slip direction 1 in collision local frame, between
+    /// / the range of \[0..1\].
+    #[prost(double, tag = "5")]
+    pub slip1: f64,
+    /// / \brief Force dependent slip direction 2 in collision local frame, between
+    /// / the range of \[0..1\].
+    #[prost(double, tag = "6")]
+    pub slip2: f64,
+    /// / \brief Torsional friction.
+    #[prost(message, optional, tag = "7")]
+    pub torsional: ::core::option::Option<friction::Torsional>,
+}
+/// Nested message and enum types in `Friction`.
+pub mod friction {
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Torsional {
+        /// / \brief Torsional coefficient of friction in the range of \[0..1\].
+        #[prost(double, tag = "1")]
+        pub coefficient: f64,
+        /// / \brief By default, torsional friction is calculated using the
+        /// / "patch_radius", which is sqrt(R*d), where "R" is the radius of the
+        /// / collision at the contact point (surface_radius) and "d" is the contact
+        /// / depth. If this flag is set to false, surface_radius and contact depth
+        /// / will be used instead of patch radius.
+        #[prost(bool, tag = "2")]
+        pub use_patch_radius: bool,
+        /// / \brief Radius of contact patch surface, used for torsional friction.
+        #[prost(double, tag = "3")]
+        pub patch_radius: f64,
+        /// / \brief Surface radius on the point of contact, used for torsional
+        /// / friction.
+        #[prost(double, tag = "4")]
+        pub surface_radius: f64,
+        /// / \brief Torsional friction information exclusive to ODE physics engine.
+        #[prost(message, optional, tag = "5")]
+        pub ode: ::core::option::Option<torsional::Ode>,
+    }
+    /// Nested message and enum types in `Torsional`.
+    pub mod torsional {
+        #[derive(::rgz_derive::GzMessage)]
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct Ode {
+            /// / \brief Force dependent slip for torsional friction, between the range
+            /// / of \[0..1\].
+            #[prost(double, tag = "1")]
+            pub slip: f64,
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Surface {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag = "2")]
+    pub friction: ::core::option::Option<Friction>,
+    #[prost(double, tag = "3")]
+    pub restitution_coefficient: f64,
+    #[prost(double, tag = "4")]
+    pub bounce_threshold: f64,
+    #[prost(double, tag = "5")]
+    pub soft_cfm: f64,
+    #[prost(double, tag = "6")]
+    pub soft_erp: f64,
+    #[prost(double, tag = "7")]
+    pub kp: f64,
+    #[prost(double, tag = "8")]
+    pub kd: f64,
+    #[prost(double, tag = "9")]
+    pub max_vel: f64,
+    #[prost(double, tag = "10")]
+    pub min_depth: f64,
+    #[prost(bool, tag = "11")]
+    pub collide_without_contact: bool,
+    #[prost(uint32, tag = "12")]
+    pub collide_without_contact_bitmask: u32,
+    #[prost(uint32, tag = "13")]
+    pub collide_bitmask: u32,
+    #[prost(double, tag = "14")]
+    pub elastic_modulus: f64,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1404,6 +885,20 @@ pub mod material {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Plugin {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub filename: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub innerxml: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Visual {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
@@ -1526,118 +1021,26 @@ pub mod visual {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct VisualV {
+pub struct Collision {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Visual messages.
-    #[prost(message, repeated, tag = "2")]
-    pub visuals: ::prost::alloc::vec::Vec<Visual>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SensorNoise {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief The type of noise
-    #[prost(enumeration = "sensor_noise::Type", tag = "2")]
-    pub r#type: i32,
-    /// / \brief Noise mean
-    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
-    #[prost(double, tag = "3")]
-    pub mean: f64,
-    /// / \brief Noise standard deviation
-    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
+    #[prost(uint32, tag = "2")]
+    pub id: u32,
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
     #[prost(double, tag = "4")]
-    pub stddev: f64,
-    /// / \brief Noise mean bias
-    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
+    pub laser_retro: f64,
     #[prost(double, tag = "5")]
-    pub bias_mean: f64,
-    /// / \brief Noise standard deviation bias
-    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
-    #[prost(double, tag = "6")]
-    pub bias_stddev: f64,
-    /// / \brief Noise  precision.
-    /// / Used by GAUSSIAN_QUANTIZED
-    #[prost(double, tag = "7")]
-    pub precision: f64,
-    /// / \brief For type "gaussian*", the standard deviation of the noise used to
-    /// / drive a process to model slow variations in a sensor bias.
-    #[prost(double, tag = "8")]
-    pub dynamic_bias_stddev: f64,
-    /// / \brief For type "gaussian*", the correlation time in seconds of the
-    /// / noise used to drive a process to model slow variations in a sensor bias.
-    /// / A typical value, when used, would be on the order of
-    /// / 3600 seconds (1 hour).
-    #[prost(double, tag = "9")]
-    pub dynamic_bias_correlation_time: f64,
-}
-/// Nested message and enum types in `SensorNoise`.
-pub mod sensor_noise {
-    /// / \brief Noise types
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum Type {
-        /// / \brief No noise
-        None = 0,
-        /// / \brief Gaussian noise
-        Gaussian = 2,
-        /// / \brief Gaussian noise plus quantization of outputs (rounding)
-        GaussianQuantized = 3,
-    }
-    impl Type {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Type::None => "NONE",
-                Type::Gaussian => "GAUSSIAN",
-                Type::GaussianQuantized => "GAUSSIAN_QUANTIZED",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "NONE" => Some(Self::None),
-                "GAUSSIAN" => Some(Self::Gaussian),
-                "GAUSSIAN_QUANTIZED" => Some(Self::GaussianQuantized),
-                _ => None,
-            }
-        }
-    }
-}
-/// / \brief Message that describes an air speed sensor.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AirSpeedSensor {
-    /// / \brief header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Differential pressure (hPa).
-    #[prost(double, tag = "2")]
-    pub diff_pressure: f64,
-    /// / \brief Temperature (kelvin).
-    #[prost(double, tag = "3")]
-    pub temperature: f64,
-    /// / \brief Sensor speed noise.
-    #[prost(message, optional, tag = "4")]
-    pub pressure_noise: ::core::option::Option<SensorNoise>,
+    pub max_contacts: f64,
+    #[prost(message, optional, tag = "6")]
+    pub pose: ::core::option::Option<Pose>,
+    #[prost(message, optional, tag = "7")]
+    pub geometry: ::core::option::Option<Geometry>,
+    #[prost(message, optional, tag = "8")]
+    pub surface: ::core::option::Option<Surface>,
+    #[prost(message, repeated, tag = "9")]
+    pub visual: ::prost::alloc::vec::Vec<Visual>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1738,587 +1141,6 @@ pub mod light {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParameterDeclaration {
-    /// / \brief Parameter name.
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Parameter type, i.e. the associated protobuf type.
-    #[prost(string, tag = "2")]
-    pub r#type: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Entity {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Entity unique identifier across all types. Defaults to null
-    /// / entity (0).
-    #[prost(uint64, tag = "2")]
-    pub id: u64,
-    /// / \brief Entity name, which is not guaranteed to be unique.
-    #[prost(string, tag = "3")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Entity type.
-    #[prost(enumeration = "entity::Type", tag = "4")]
-    pub r#type: i32,
-}
-/// Nested message and enum types in `Entity`.
-pub mod entity {
-    /// / \brief Entity type
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum Type {
-        /// / \brief No type specified
-        None = 0,
-        /// / \brief Light
-        Light = 1,
-        /// / \brief Model
-        Model = 2,
-        /// / \brief Link
-        Link = 3,
-        /// / \brief Visual
-        Visual = 4,
-        /// / \brief Collision
-        Collision = 5,
-        /// / \brief Sensor
-        Sensor = 6,
-        /// / \brief Joint
-        Joint = 7,
-        /// / \brief Actor
-        Actor = 8,
-        /// / \brief World
-        World = 9,
-    }
-    impl Type {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                Type::None => "NONE",
-                Type::Light => "LIGHT",
-                Type::Model => "MODEL",
-                Type::Link => "LINK",
-                Type::Visual => "VISUAL",
-                Type::Collision => "COLLISION",
-                Type::Sensor => "SENSOR",
-                Type::Joint => "JOINT",
-                Type::Actor => "ACTOR",
-                Type::World => "WORLD",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "NONE" => Some(Self::None),
-                "LIGHT" => Some(Self::Light),
-                "MODEL" => Some(Self::Model),
-                "LINK" => Some(Self::Link),
-                "VISUAL" => Some(Self::Visual),
-                "COLLISION" => Some(Self::Collision),
-                "SENSOR" => Some(Self::Sensor),
-                "JOINT" => Some(Self::Joint),
-                "ACTOR" => Some(Self::Actor),
-                "WORLD" => Some(Self::World),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WheelSlipParametersCmd {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Entity which wheel slip parameters are going to be modified.
-    /// /
-    /// / The entity might be a model with at least one link or a link.
-    /// / If the entity is a model, the wheel slip parameters of all its
-    /// / links will be updated.
-    /// /
-    /// / The entity name (entity.name) will be used as an scoped name.
-    /// / For example, in this
-    /// / hierarchy:
-    /// /
-    /// / world_name
-    /// /  model_name
-    /// /    link_name
-    /// /
-    /// / All these names will return the link entity:
-    /// /
-    /// / * world_name::model_name::link_name
-    /// / * model_name::link_name
-    /// / * link_name
-    #[prost(message, optional, tag = "2")]
-    pub entity: ::core::option::Option<Entity>,
-    /// / \brief Unitless lateral slip ratio.
-    /// /
-    /// / See <https://en.wikipedia.org/wiki/Slip_(vehicle_dynamics>).
-    /// / to tangential force ratio (tangential / normal force).
-    /// / At each time step, these compliances are multiplied by
-    /// / the linear wheel spin velocity and divided by the wheel normal force
-    /// / parameter specified in the sdf.
-    #[prost(double, tag = "4")]
-    pub slip_compliance_lateral: f64,
-    /// / \brief Unitless longitudinal slip ratio.
-    /// /
-    /// / See <https://en.wikipedia.org/wiki/Slip_(vehicle_dynamics>).
-    /// / to tangential force ratio (tangential / normal force).
-    /// / At each time step, these compliances are multiplied by
-    /// / the linear wheel spin velocity and divided by the wheel normal force
-    /// / parameter specified in the sdf.
-    #[prost(double, tag = "5")]
-    pub slip_compliance_longitudinal: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UInt64 {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Integer data
-    #[prost(uint64, tag = "2")]
-    pub data: u64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Oriented3DBox {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Center of the bounding box in 3d camera coordinates
-    #[prost(message, optional, tag = "2")]
-    pub center: ::core::option::Option<Vector3d>,
-    /// / \brief Orientation of the bounding box in 3d camera coordinates
-    #[prost(message, optional, tag = "3")]
-    pub orientation: ::core::option::Option<Quaternion>,
-    /// / \brief The size of the bounding box on XYZ (width/height/depth)
-    #[prost(message, optional, tag = "4")]
-    pub box_size: ::core::option::Option<Vector3d>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AnnotatedOriented3DBox {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief oreinted 3d box
-    #[prost(message, optional, tag = "2")]
-    pub r#box: ::core::option::Option<Oriented3DBox>,
-    /// / \brief Label (class) of the box's object
-    #[prost(uint32, tag = "3")]
-    pub label: u32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ModelConfiguration {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// Time when the pose should be enforced
-    #[prost(message, optional, tag = "2")]
-    pub time: ::core::option::Option<Time>,
-    #[prost(string, repeated, tag = "3")]
-    pub joint_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(double, repeated, tag = "4")]
-    pub joint_positions: ::prost::alloc::vec::Vec<f64>,
-    /// Specify model pose
-    #[prost(message, optional, tag = "5")]
-    pub pose: ::core::option::Option<Pose>,
-    /// Option to set model pose by specifying pose of link
-    #[prost(string, tag = "6")]
-    pub link_name: ::prost::alloc::string::String,
-}
-/// / \brief Message that describes an altimeter sensor.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AltimeterSensor {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Noise parameters for the vertical position.
-    #[prost(message, optional, tag = "2")]
-    pub vertical_position_noise: ::core::option::Option<SensorNoise>,
-    /// / \brief Noise parameters for the vertical velocity.
-    #[prost(message, optional, tag = "3")]
-    pub vertical_velocity_noise: ::core::option::Option<SensorNoise>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Twist {
-    /// / \brief Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Linear velocity in 3d space.
-    #[prost(message, optional, tag = "2")]
-    pub linear: ::core::option::Option<Vector3d>,
-    /// / \brief Angular velocity in 3d space.
-    #[prost(message, optional, tag = "3")]
-    pub angular: ::core::option::Option<Vector3d>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Inertial {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Mass in kg
-    #[prost(double, tag = "2")]
-    pub mass: f64,
-    /// / \brief CoM pose with respect to the link origin. In meters.
-    #[prost(message, optional, tag = "3")]
-    pub pose: ::core::option::Option<Pose>,
-    /// / \brief Inertia matrix's XX element, in kg * m^2.
-    #[prost(double, tag = "4")]
-    pub ixx: f64,
-    /// / \brief Inertia matrix's XY element, in kg * m^2.
-    #[prost(double, tag = "5")]
-    pub ixy: f64,
-    /// / \brief Inertia matrix's XZ element, in kg * m^2.
-    #[prost(double, tag = "6")]
-    pub ixz: f64,
-    /// / \brief Inertia matrix's YY element, in kg * m^2.
-    #[prost(double, tag = "7")]
-    pub iyy: f64,
-    /// / \brief Inertia matrix's YZ element, in kg * m^2.
-    #[prost(double, tag = "8")]
-    pub iyz: f64,
-    /// / \brief Inertia matrix's ZZ element, in kg * m^2.
-    #[prost(double, tag = "9")]
-    pub izz: f64,
-    /// / \brief Fluid added mass matrix. The matrix is symmetric, so only the 21
-    /// / elements of the top-half need to be set, organized as follows:
-    /// /
-    /// / 00, 01, 02, 03, 04, 05,
-    /// /     11, 12, 13, 14, 15,
-    /// /         22, 23, 24, 25,
-    /// /             33, 34, 35,
-    /// /                 44, 45,
-    /// /                     55,
-    /// /
-    /// / Elements on the top-left 3x3 corner are in kg, the bottom-right ones are
-    /// / in kg * m^2, and the rest are in kg * m.
-    #[prost(double, repeated, tag = "10")]
-    pub fluid_added_mass: ::prost::alloc::vec::Vec<f64>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Int64 {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Integer data
-    #[prost(int64, tag = "2")]
-    pub data: i64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct BatteryState {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Voltage in Volts
-    #[prost(double, tag = "2")]
-    pub voltage: f64,
-    /// / \brief Current draw in Ampere
-    #[prost(double, tag = "3")]
-    pub current: f64,
-    /// / \brief Amount of charge in the battery in Ah
-    #[prost(double, tag = "4")]
-    pub charge: f64,
-    /// / \brief Capacity in Ah
-    #[prost(double, tag = "5")]
-    pub capacity: f64,
-    /// / \brief Percentage of charge left
-    #[prost(double, tag = "6")]
-    pub percentage: f64,
-    /// / \brief The charging status
-    #[prost(enumeration = "battery_state::PowerSupplyStatus", tag = "7")]
-    pub power_supply_status: i32,
-}
-/// Nested message and enum types in `BatteryState`.
-pub mod battery_state {
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum PowerSupplyStatus {
-        Unknown = 0,
-        Charging = 1,
-        Discharging = 2,
-        NotCharging = 3,
-        Full = 4,
-    }
-    impl PowerSupplyStatus {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                PowerSupplyStatus::Unknown => "UNKNOWN",
-                PowerSupplyStatus::Charging => "CHARGING",
-                PowerSupplyStatus::Discharging => "DISCHARGING",
-                PowerSupplyStatus::NotCharging => "NOT_CHARGING",
-                PowerSupplyStatus::Full => "FULL",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "UNKNOWN" => Some(Self::Unknown),
-                "CHARGING" => Some(Self::Charging),
-                "DISCHARGING" => Some(Self::Discharging),
-                "NOT_CHARGING" => Some(Self::NotCharging),
-                "FULL" => Some(Self::Full),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Wrench {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag = "2")]
-    pub force: ::core::option::Option<Vector3d>,
-    #[prost(message, optional, tag = "3")]
-    pub torque: ::core::option::Option<Vector3d>,
-    #[prost(message, optional, tag = "4")]
-    pub force_offset: ::core::option::Option<Vector3d>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EntityWrench {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Entity to apply the wrench to.
-    #[prost(message, optional, tag = "2")]
-    pub entity: ::core::option::Option<Entity>,
-    /// / \brief Wrench to apply.
-    #[prost(message, optional, tag = "3")]
-    pub wrench: ::core::option::Option<Wrench>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EntityWrenchMap {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief The map of entity wrench messages.
-    #[prost(map = "string, message", tag = "2")]
-    pub wrenches: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        EntityWrench,
-    >,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Boolean {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Boolean data
-    #[prost(bool, tag = "2")]
-    pub data: bool,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Float {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Float data
-    #[prost(float, tag = "2")]
-    pub data: f32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct StringMsg {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub data: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParticleEmitter {
-    /// / \brief Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief The emitter name.
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Unique Id.
-    #[prost(uint32, tag = "3")]
-    pub id: u32,
-    /// / \brief The emitter type.
-    #[prost(enumeration = "particle_emitter::EmitterType", tag = "4")]
-    pub r#type: i32,
-    /// / \brief The position of the emitter.
-    #[prost(message, optional, tag = "5")]
-    pub pose: ::core::option::Option<Pose>,
-    /// / The size of the emitter where the particles are sampled.
-    #[prost(message, optional, tag = "6")]
-    pub size: ::core::option::Option<Vector3d>,
-    /// / \brief How many particles per second should be emitted.
-    #[prost(message, optional, tag = "7")]
-    pub rate: ::core::option::Option<Float>,
-    /// / \brief The number of seconds the emitter is active.
-    #[prost(message, optional, tag = "8")]
-    pub duration: ::core::option::Option<Float>,
-    /// / \brief Whether particle emitter is enabled or not.
-    #[prost(message, optional, tag = "9")]
-    pub emitting: ::core::option::Option<Boolean>,
-    /// / \brief The particle dimensions (width, height, depth).
-    #[prost(message, optional, tag = "10")]
-    pub particle_size: ::core::option::Option<Vector3d>,
-    /// / \brief The number of seconds each particle will ’live’ for before
-    /// / being destroyed.
-    #[prost(message, optional, tag = "11")]
-    pub lifetime: ::core::option::Option<Float>,
-    /// / \brief The material which all particles in the emitter will use.
-    #[prost(message, optional, tag = "12")]
-    pub material: ::core::option::Option<Material>,
-    /// / \brief The minimum velocity each particle is emitted (m/s).
-    #[prost(message, optional, tag = "13")]
-    pub min_velocity: ::core::option::Option<Float>,
-    /// / \brief The maximum velocity each particle is emitted (m/s).
-    #[prost(message, optional, tag = "14")]
-    pub max_velocity: ::core::option::Option<Float>,
-    /// / \brief The starting color of the particles.
-    #[prost(message, optional, tag = "15")]
-    pub color_start: ::core::option::Option<Color>,
-    /// / \brief The end color of the particles.
-    #[prost(message, optional, tag = "16")]
-    pub color_end: ::core::option::Option<Color>,
-    /// / \brief The amount by which to scale the particles in both x and y
-    /// / direction per second (screen coordinates).
-    #[prost(message, optional, tag = "17")]
-    pub scale_rate: ::core::option::Option<Float>,
-    /// / \brief The path to the color image used as an affector.
-    #[prost(message, optional, tag = "18")]
-    pub color_range_image: ::core::option::Option<StringMsg>,
-    /// / \brief The topic name used by the particle emitter for control and
-    /// / modification.
-    #[prost(message, optional, tag = "19")]
-    pub topic: ::core::option::Option<StringMsg>,
-    /// / \brief The ratio of particles that will be detected by sensors.
-    /// / Increasing the ratio means there is a higher chance of particles
-    /// / reflecting and interfering with depth sensing, making the emitter
-    /// / appear more dense. Decreasing the ratio decreases the chance of
-    /// / particles reflecting and interfering with depth sensing, making it
-    /// / appear less dense. Value is in the range of \[0, 1\].
-    #[prost(message, optional, tag = "20")]
-    pub particle_scatter_ratio: ::core::option::Option<Float>,
-}
-/// Nested message and enum types in `ParticleEmitter`.
-pub mod particle_emitter {
-    /// / \brief All possible emitter types.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum EmitterType {
-        /// / \brief Point emitter.
-        Point = 0,
-        /// / \brief Box emitter.
-        Box = 1,
-        /// / \brief Cylinder emitter.
-        Cylinder = 2,
-        /// / \brief Ellipsoid emitter.
-        Ellipsoid = 3,
-    }
-    impl EmitterType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                EmitterType::Point => "POINT",
-                EmitterType::Box => "BOX",
-                EmitterType::Cylinder => "CYLINDER",
-                EmitterType::Ellipsoid => "ELLIPSOID",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "POINT" => Some(Self::Point),
-                "BOX" => Some(Self::Box),
-                "CYLINDER" => Some(Self::Cylinder),
-                "ELLIPSOID" => Some(Self::Ellipsoid),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParticleEmitterV {
-    /// / \brief Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief List of particle emitters.
-    #[prost(message, repeated, tag = "2")]
-    pub particle_emitter: ::prost::alloc::vec::Vec<ParticleEmitter>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AxisAlignedBox {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
@@ -2387,6 +1209,108 @@ pub struct Axis {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SensorNoise {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief The type of noise
+    #[prost(enumeration = "sensor_noise::Type", tag = "2")]
+    pub r#type: i32,
+    /// / \brief Noise mean
+    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
+    #[prost(double, tag = "3")]
+    pub mean: f64,
+    /// / \brief Noise standard deviation
+    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
+    #[prost(double, tag = "4")]
+    pub stddev: f64,
+    /// / \brief Noise mean bias
+    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
+    #[prost(double, tag = "5")]
+    pub bias_mean: f64,
+    /// / \brief Noise standard deviation bias
+    /// / Used by GAUSSIAN, and GAUSSIAN_QUANTIZED
+    #[prost(double, tag = "6")]
+    pub bias_stddev: f64,
+    /// / \brief Noise  precision.
+    /// / Used by GAUSSIAN_QUANTIZED
+    #[prost(double, tag = "7")]
+    pub precision: f64,
+    /// / \brief For type "gaussian*", the standard deviation of the noise used to
+    /// / drive a process to model slow variations in a sensor bias.
+    #[prost(double, tag = "8")]
+    pub dynamic_bias_stddev: f64,
+    /// / \brief For type "gaussian*", the correlation time in seconds of the
+    /// / noise used to drive a process to model slow variations in a sensor bias.
+    /// / A typical value, when used, would be on the order of
+    /// / 3600 seconds (1 hour).
+    #[prost(double, tag = "9")]
+    pub dynamic_bias_correlation_time: f64,
+}
+/// Nested message and enum types in `SensorNoise`.
+pub mod sensor_noise {
+    /// / \brief Noise types
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// / \brief No noise
+        None = 0,
+        /// / \brief Gaussian noise
+        Gaussian = 2,
+        /// / \brief Gaussian noise plus quantization of outputs (rounding)
+        GaussianQuantized = 3,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Type::None => "NONE",
+                Type::Gaussian => "GAUSSIAN",
+                Type::GaussianQuantized => "GAUSSIAN_QUANTIZED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "NONE" => Some(Self::None),
+                "GAUSSIAN" => Some(Self::Gaussian),
+                "GAUSSIAN_QUANTIZED" => Some(Self::GaussianQuantized),
+                _ => None,
+            }
+        }
+    }
+}
+/// / \brief Message that describes an altimeter sensor.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AltimeterSensor {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Noise parameters for the vertical position.
+    #[prost(message, optional, tag = "2")]
+    pub vertical_position_noise: ::core::option::Option<SensorNoise>,
+    /// / \brief Noise parameters for the vertical velocity.
+    #[prost(message, optional, tag = "3")]
+    pub vertical_velocity_noise: ::core::option::Option<SensorNoise>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Distortion {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
@@ -2403,6 +1327,17 @@ pub struct Distortion {
     pub p1: f64,
     #[prost(double, tag = "7")]
     pub p2: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Double {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Double data
+    #[prost(double, tag = "2")]
+    pub data: f64,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3191,128 +2126,203 @@ pub mod joint {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Friction {
+pub struct Inertial {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Coefficient of friction in the range of \[0..1\].
+    /// / \brief Mass in kg
     #[prost(double, tag = "2")]
-    pub mu: f64,
-    /// / \brief Second coefficient of friction in the range of \[0..1\].
-    #[prost(double, tag = "3")]
-    pub mu2: f64,
-    /// / \brief Direction of mu1 in the collision local reference frame.
-    #[prost(message, optional, tag = "4")]
-    pub fdir1: ::core::option::Option<Vector3d>,
-    /// / \brief Force dependent slip direction 1 in collision local frame, between
-    /// / the range of \[0..1\].
+    pub mass: f64,
+    /// / \brief CoM pose with respect to the link origin. In meters.
+    #[prost(message, optional, tag = "3")]
+    pub pose: ::core::option::Option<Pose>,
+    /// / \brief Inertia matrix's XX element, in kg * m^2.
+    #[prost(double, tag = "4")]
+    pub ixx: f64,
+    /// / \brief Inertia matrix's XY element, in kg * m^2.
     #[prost(double, tag = "5")]
-    pub slip1: f64,
-    /// / \brief Force dependent slip direction 2 in collision local frame, between
-    /// / the range of \[0..1\].
+    pub ixy: f64,
+    /// / \brief Inertia matrix's XZ element, in kg * m^2.
     #[prost(double, tag = "6")]
-    pub slip2: f64,
-    /// / \brief Torsional friction.
-    #[prost(message, optional, tag = "7")]
-    pub torsional: ::core::option::Option<friction::Torsional>,
+    pub ixz: f64,
+    /// / \brief Inertia matrix's YY element, in kg * m^2.
+    #[prost(double, tag = "7")]
+    pub iyy: f64,
+    /// / \brief Inertia matrix's YZ element, in kg * m^2.
+    #[prost(double, tag = "8")]
+    pub iyz: f64,
+    /// / \brief Inertia matrix's ZZ element, in kg * m^2.
+    #[prost(double, tag = "9")]
+    pub izz: f64,
+    /// / \brief Fluid added mass matrix. The matrix is symmetric, so only the 21
+    /// / elements of the top-half need to be set, organized as follows:
+    /// /
+    /// / 00, 01, 02, 03, 04, 05,
+    /// /     11, 12, 13, 14, 15,
+    /// /         22, 23, 24, 25,
+    /// /             33, 34, 35,
+    /// /                 44, 45,
+    /// /                     55,
+    /// /
+    /// / Elements on the top-left 3x3 corner are in kg, the bottom-right ones are
+    /// / in kg * m^2, and the rest are in kg * m.
+    #[prost(double, repeated, tag = "10")]
+    pub fluid_added_mass: ::prost::alloc::vec::Vec<f64>,
 }
-/// Nested message and enum types in `Friction`.
-pub mod friction {
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Torsional {
-        /// / \brief Torsional coefficient of friction in the range of \[0..1\].
-        #[prost(double, tag = "1")]
-        pub coefficient: f64,
-        /// / \brief By default, torsional friction is calculated using the
-        /// / "patch_radius", which is sqrt(R*d), where "R" is the radius of the
-        /// / collision at the contact point (surface_radius) and "d" is the contact
-        /// / depth. If this flag is set to false, surface_radius and contact depth
-        /// / will be used instead of patch radius.
-        #[prost(bool, tag = "2")]
-        pub use_patch_radius: bool,
-        /// / \brief Radius of contact patch surface, used for torsional friction.
-        #[prost(double, tag = "3")]
-        pub patch_radius: f64,
-        /// / \brief Surface radius on the point of contact, used for torsional
-        /// / friction.
-        #[prost(double, tag = "4")]
-        pub surface_radius: f64,
-        /// / \brief Torsional friction information exclusive to ODE physics engine.
-        #[prost(message, optional, tag = "5")]
-        pub ode: ::core::option::Option<torsional::Ode>,
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Boolean {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Boolean data
+    #[prost(bool, tag = "2")]
+    pub data: bool,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Float {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Float data
+    #[prost(float, tag = "2")]
+    pub data: f32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StringMsg {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub data: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParticleEmitter {
+    /// / \brief Optional header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief The emitter name.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Unique Id.
+    #[prost(uint32, tag = "3")]
+    pub id: u32,
+    /// / \brief The emitter type.
+    #[prost(enumeration = "particle_emitter::EmitterType", tag = "4")]
+    pub r#type: i32,
+    /// / \brief The position of the emitter.
+    #[prost(message, optional, tag = "5")]
+    pub pose: ::core::option::Option<Pose>,
+    /// / The size of the emitter where the particles are sampled.
+    #[prost(message, optional, tag = "6")]
+    pub size: ::core::option::Option<Vector3d>,
+    /// / \brief How many particles per second should be emitted.
+    #[prost(message, optional, tag = "7")]
+    pub rate: ::core::option::Option<Float>,
+    /// / \brief The number of seconds the emitter is active.
+    #[prost(message, optional, tag = "8")]
+    pub duration: ::core::option::Option<Float>,
+    /// / \brief Whether particle emitter is enabled or not.
+    #[prost(message, optional, tag = "9")]
+    pub emitting: ::core::option::Option<Boolean>,
+    /// / \brief The particle dimensions (width, height, depth).
+    #[prost(message, optional, tag = "10")]
+    pub particle_size: ::core::option::Option<Vector3d>,
+    /// / \brief The number of seconds each particle will ’live’ for before
+    /// / being destroyed.
+    #[prost(message, optional, tag = "11")]
+    pub lifetime: ::core::option::Option<Float>,
+    /// / \brief The material which all particles in the emitter will use.
+    #[prost(message, optional, tag = "12")]
+    pub material: ::core::option::Option<Material>,
+    /// / \brief The minimum velocity each particle is emitted (m/s).
+    #[prost(message, optional, tag = "13")]
+    pub min_velocity: ::core::option::Option<Float>,
+    /// / \brief The maximum velocity each particle is emitted (m/s).
+    #[prost(message, optional, tag = "14")]
+    pub max_velocity: ::core::option::Option<Float>,
+    /// / \brief The starting color of the particles.
+    #[prost(message, optional, tag = "15")]
+    pub color_start: ::core::option::Option<Color>,
+    /// / \brief The end color of the particles.
+    #[prost(message, optional, tag = "16")]
+    pub color_end: ::core::option::Option<Color>,
+    /// / \brief The amount by which to scale the particles in both x and y
+    /// / direction per second (screen coordinates).
+    #[prost(message, optional, tag = "17")]
+    pub scale_rate: ::core::option::Option<Float>,
+    /// / \brief The path to the color image used as an affector.
+    #[prost(message, optional, tag = "18")]
+    pub color_range_image: ::core::option::Option<StringMsg>,
+    /// / \brief The topic name used by the particle emitter for control and
+    /// / modification.
+    #[prost(message, optional, tag = "19")]
+    pub topic: ::core::option::Option<StringMsg>,
+    /// / \brief The ratio of particles that will be detected by sensors.
+    /// / Increasing the ratio means there is a higher chance of particles
+    /// / reflecting and interfering with depth sensing, making the emitter
+    /// / appear more dense. Decreasing the ratio decreases the chance of
+    /// / particles reflecting and interfering with depth sensing, making it
+    /// / appear less dense. Value is in the range of \[0, 1\].
+    #[prost(message, optional, tag = "20")]
+    pub particle_scatter_ratio: ::core::option::Option<Float>,
+}
+/// Nested message and enum types in `ParticleEmitter`.
+pub mod particle_emitter {
+    /// / \brief All possible emitter types.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum EmitterType {
+        /// / \brief Point emitter.
+        Point = 0,
+        /// / \brief Box emitter.
+        Box = 1,
+        /// / \brief Cylinder emitter.
+        Cylinder = 2,
+        /// / \brief Ellipsoid emitter.
+        Ellipsoid = 3,
     }
-    /// Nested message and enum types in `Torsional`.
-    pub mod torsional {
-        #[derive(::rgz_derive::GzMessage)]
-        #[allow(clippy::derive_partial_eq_without_eq)]
-        #[derive(Clone, PartialEq, ::prost::Message)]
-        pub struct Ode {
-            /// / \brief Force dependent slip for torsional friction, between the range
-            /// / of \[0..1\].
-            #[prost(double, tag = "1")]
-            pub slip: f64,
+    impl EmitterType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                EmitterType::Point => "POINT",
+                EmitterType::Box => "BOX",
+                EmitterType::Cylinder => "CYLINDER",
+                EmitterType::Ellipsoid => "ELLIPSOID",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "POINT" => Some(Self::Point),
+                "BOX" => Some(Self::Box),
+                "CYLINDER" => Some(Self::Cylinder),
+                "ELLIPSOID" => Some(Self::Ellipsoid),
+                _ => None,
+            }
         }
     }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Surface {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag = "2")]
-    pub friction: ::core::option::Option<Friction>,
-    #[prost(double, tag = "3")]
-    pub restitution_coefficient: f64,
-    #[prost(double, tag = "4")]
-    pub bounce_threshold: f64,
-    #[prost(double, tag = "5")]
-    pub soft_cfm: f64,
-    #[prost(double, tag = "6")]
-    pub soft_erp: f64,
-    #[prost(double, tag = "7")]
-    pub kp: f64,
-    #[prost(double, tag = "8")]
-    pub kd: f64,
-    #[prost(double, tag = "9")]
-    pub max_vel: f64,
-    #[prost(double, tag = "10")]
-    pub min_depth: f64,
-    #[prost(bool, tag = "11")]
-    pub collide_without_contact: bool,
-    #[prost(uint32, tag = "12")]
-    pub collide_without_contact_bitmask: u32,
-    #[prost(uint32, tag = "13")]
-    pub collide_bitmask: u32,
-    #[prost(double, tag = "14")]
-    pub elastic_modulus: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Collision {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(uint32, tag = "2")]
-    pub id: u32,
-    #[prost(string, tag = "3")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(double, tag = "4")]
-    pub laser_retro: f64,
-    #[prost(double, tag = "5")]
-    pub max_contacts: f64,
-    #[prost(message, optional, tag = "6")]
-    pub pose: ::core::option::Option<Pose>,
-    #[prost(message, optional, tag = "7")]
-    pub geometry: ::core::option::Option<Geometry>,
-    #[prost(message, optional, tag = "8")]
-    pub surface: ::core::option::Option<Surface>,
-    #[prost(message, repeated, tag = "9")]
-    pub visual: ::prost::alloc::vec::Vec<Visual>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3453,73 +2463,24 @@ pub struct Model {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorldReset {
+pub struct Entity {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    #[prost(bool, tag = "2")]
-    pub all: bool,
-    #[prost(bool, tag = "3")]
-    pub time_only: bool,
-    #[prost(bool, tag = "4")]
-    pub model_only: bool,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorldControl {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(bool, tag = "2")]
-    pub pause: bool,
-    #[prost(bool, tag = "3")]
-    pub step: bool,
-    #[prost(uint32, tag = "4")]
-    pub multi_step: u32,
-    #[prost(message, optional, tag = "5")]
-    pub reset: ::core::option::Option<WorldReset>,
-    #[prost(uint32, tag = "6")]
-    pub seed: u32,
-    /// \brief A simulation time in the future to run to and then pause.
-    #[prost(message, optional, tag = "7")]
-    pub run_to_sim_time: ::core::option::Option<Time>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UserCmd {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Unique id for user command.
-    #[prost(uint32, tag = "2")]
-    pub id: u32,
-    /// / \brief Description for the command.
+    /// / \brief Entity unique identifier across all types. Defaults to null
+    /// / entity (0).
+    #[prost(uint64, tag = "2")]
+    pub id: u64,
+    /// / \brief Entity name, which is not guaranteed to be unique.
     #[prost(string, tag = "3")]
-    pub description: ::prost::alloc::string::String,
-    /// / \brief Type of command.
-    #[prost(enumeration = "user_cmd::Type", tag = "4")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Entity type.
+    #[prost(enumeration = "entity::Type", tag = "4")]
     pub r#type: i32,
-    /// / \brief For model modify commands.
-    #[prost(message, repeated, tag = "5")]
-    pub model: ::prost::alloc::vec::Vec<Model>,
-    /// / \brief For light modify commands.
-    #[prost(message, repeated, tag = "6")]
-    pub light: ::prost::alloc::vec::Vec<Light>,
-    /// / \brief Name of entity targeted by command
-    #[prost(string, tag = "7")]
-    pub entity_name: ::prost::alloc::string::String,
-    /// / \brief For World Control commands.
-    #[prost(message, optional, tag = "8")]
-    pub world_control: ::core::option::Option<WorldControl>,
-    /// / \brief Wrench for apply wrench commands.
-    #[prost(message, optional, tag = "9")]
-    pub wrench: ::core::option::Option<Wrench>,
 }
-/// Nested message and enum types in `UserCmd`.
-pub mod user_cmd {
-    /// / \brief Types of user commands
+/// Nested message and enum types in `Entity`.
+pub mod entity {
+    /// / \brief Entity type
     #[derive(
         Clone,
         Copy,
@@ -3533,14 +2494,26 @@ pub mod user_cmd {
     )]
     #[repr(i32)]
     pub enum Type {
-        /// / \brief Moving an entity.
-        Moving = 0,
-        /// / \brief Controlling the world.
-        WorldControl = 1,
-        /// / \brief Applying wrench.
-        Wrench = 2,
-        /// / \brief Scaling an entity.
-        Scaling = 3,
+        /// / \brief No type specified
+        None = 0,
+        /// / \brief Light
+        Light = 1,
+        /// / \brief Model
+        Model = 2,
+        /// / \brief Link
+        Link = 3,
+        /// / \brief Visual
+        Visual = 4,
+        /// / \brief Collision
+        Collision = 5,
+        /// / \brief Sensor
+        Sensor = 6,
+        /// / \brief Joint
+        Joint = 7,
+        /// / \brief Actor
+        Actor = 8,
+        /// / \brief World
+        World = 9,
     }
     impl Type {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -3549,19 +2522,31 @@ pub mod user_cmd {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                Type::Moving => "MOVING",
-                Type::WorldControl => "WORLD_CONTROL",
-                Type::Wrench => "WRENCH",
-                Type::Scaling => "SCALING",
+                Type::None => "NONE",
+                Type::Light => "LIGHT",
+                Type::Model => "MODEL",
+                Type::Link => "LINK",
+                Type::Visual => "VISUAL",
+                Type::Collision => "COLLISION",
+                Type::Sensor => "SENSOR",
+                Type::Joint => "JOINT",
+                Type::Actor => "ACTOR",
+                Type::World => "WORLD",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
         pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
             match value {
-                "MOVING" => Some(Self::Moving),
-                "WORLD_CONTROL" => Some(Self::WorldControl),
-                "WRENCH" => Some(Self::Wrench),
-                "SCALING" => Some(Self::Scaling),
+                "NONE" => Some(Self::None),
+                "LIGHT" => Some(Self::Light),
+                "MODEL" => Some(Self::Model),
+                "LINK" => Some(Self::Link),
+                "VISUAL" => Some(Self::Visual),
+                "COLLISION" => Some(Self::Collision),
+                "SENSOR" => Some(Self::Sensor),
+                "JOINT" => Some(Self::Joint),
+                "ACTOR" => Some(Self::Actor),
+                "WORLD" => Some(Self::World),
                 _ => None,
             }
         }
@@ -3570,302 +2555,39 @@ pub mod user_cmd {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UserCmdStats {
-    /// / \brief Optional header data
+pub struct SphericalCoordinates {
+    /// / \brief Optional header data.
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief User commands in the undo list.
-    #[prost(message, repeated, tag = "2")]
-    pub undo_cmd: ::prost::alloc::vec::Vec<UserCmd>,
-    /// / \brief User commands in the redo list.
-    #[prost(message, repeated, tag = "3")]
-    pub redo_cmd: ::prost::alloc::vec::Vec<UserCmd>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DvlKinematicEstimate {
-    /// / \brief Estimate frame of reference (incl. conventions).
-    #[prost(enumeration = "dvl_kinematic_estimate::ReferenceType", tag = "1")]
-    pub reference: i32,
-    /// / \brief Estimate mean.
-    #[prost(message, optional, tag = "2")]
-    pub mean: ::core::option::Option<Vector3d>,
-    /// / \brief Estimate covariance matrix.
-    /// / A 3 x 3 row-major matrix using a flat contiguous layout.
-    #[prost(double, repeated, tag = "3")]
-    pub covariance: ::prost::alloc::vec::Vec<f64>,
-}
-/// Nested message and enum types in `DVLKinematicEstimate`.
-pub mod dvl_kinematic_estimate {
-    /// / \brief Frames of reference (incl. conventions)
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum ReferenceType {
-        /// / \brief Unspecific frame of reference.
-        DvlReferenceUnspecified = 0,
-        /// / \brief Earth bound frame of reference (typically ENU).
-        DvlReferenceEarth = 1,
-        /// / \brief Ship bound frame of reference (typically FSK).
-        DvlReferenceShip = 2,
-    }
-    impl ReferenceType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                ReferenceType::DvlReferenceUnspecified => "DVL_REFERENCE_UNSPECIFIED",
-                ReferenceType::DvlReferenceEarth => "DVL_REFERENCE_EARTH",
-                ReferenceType::DvlReferenceShip => "DVL_REFERENCE_SHIP",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "DVL_REFERENCE_UNSPECIFIED" => Some(Self::DvlReferenceUnspecified),
-                "DVL_REFERENCE_EARTH" => Some(Self::DvlReferenceEarth),
-                "DVL_REFERENCE_SHIP" => Some(Self::DvlReferenceShip),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DvlBeamState {
-    /// / \brief Beam ID.
-    #[prost(int32, tag = "1")]
-    pub id: i32,
-    /// / \brief Beam velocity estimate, measured along
-    /// / its axis, in meters per second.
-    #[prost(message, optional, tag = "2")]
-    pub velocity: ::core::option::Option<DvlKinematicEstimate>,
-    /// / \brief Beam range estimate, in meters.
-    #[prost(message, optional, tag = "3")]
-    pub range: ::core::option::Option<DvlRangeEstimate>,
-    /// / \brief Beam signal strength indicator.
-    #[prost(double, tag = "4")]
-    pub rssi: f64,
-    /// / \brief Measured background noise spectral density,
-    /// / in watts per hertz.
-    #[prost(double, tag = "5")]
-    pub nsd: f64,
-    /// / \brief Whether beam is locked to its target or not.
-    /// / A beam is said to be locked when it can reliably
-    /// / measure signal reflections.
-    #[prost(bool, tag = "6")]
-    pub locked: bool,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DvlTrackingTarget {
-    /// / \brief Type of target used for tracking.
-    #[prost(enumeration = "dvl_tracking_target::TargetType", tag = "1")]
-    pub r#type: i32,
-    /// / \brief Target range (or distance), in meters
-    #[prost(message, optional, tag = "2")]
-    pub range: ::core::option::Option<DvlRangeEstimate>,
-    /// / \brief Target position estimate, in meters.
-    #[prost(message, optional, tag = "3")]
-    pub position: ::core::option::Option<DvlKinematicEstimate>,
-}
-/// Nested message and enum types in `DVLTrackingTarget`.
-pub mod dvl_tracking_target {
-    /// / \brief Target types
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum TargetType {
-        /// / \brief Unspecific target type.
-        DvlTargetUnspecified = 0,
-        /// / \brief Bottom ground (ie. solid) target.
-        DvlTargetBottom = 1,
-        /// / \brief Water mass layer (ie. fluid) target.
-        DvlTargetWaterMass = 2,
-    }
-    impl TargetType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                TargetType::DvlTargetUnspecified => "DVL_TARGET_UNSPECIFIED",
-                TargetType::DvlTargetBottom => "DVL_TARGET_BOTTOM",
-                TargetType::DvlTargetWaterMass => "DVL_TARGET_WATER_MASS",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "DVL_TARGET_UNSPECIFIED" => Some(Self::DvlTargetUnspecified),
-                "DVL_TARGET_BOTTOM" => Some(Self::DvlTargetBottom),
-                "DVL_TARGET_WATER_MASS" => Some(Self::DvlTargetWaterMass),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DvlVelocityTracking {
-    /// / \brief Message header.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Type of DVL.
-    #[prost(enumeration = "dvl_velocity_tracking::DvlType", tag = "2")]
-    pub r#type: i32,
-    /// / \brief Locked on target.
-    #[prost(message, optional, tag = "3")]
-    pub target: ::core::option::Option<DvlTrackingTarget>,
-    /// / \brief Estimated velocity of either target or sensor
-    /// / w.r.t. the specified frame, in meters per second.
-    #[prost(message, optional, tag = "4")]
-    pub velocity: ::core::option::Option<DvlKinematicEstimate>,
-    /// / \brief Tracking beams' state.
-    #[prost(message, repeated, tag = "5")]
-    pub beams: ::prost::alloc::vec::Vec<DvlBeamState>,
-    /// / \brief Vendor-specific status (e.g. bitmask, error code).
-    #[prost(int32, tag = "6")]
-    pub status: i32,
-}
-/// Nested message and enum types in `DVLVelocityTracking`.
-pub mod dvl_velocity_tracking {
-    /// / \brief DVL types.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum DvlType {
-        /// / \brief Unspecific DVL type.
-        Unspecified = 0,
-        /// / \brief Piston DVLs.
-        Piston = 1,
-        /// / \brief Phased array DVLs.
-        PhasedArray = 2,
-    }
-    impl DvlType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                DvlType::Unspecified => "DVL_TYPE_UNSPECIFIED",
-                DvlType::Piston => "DVL_TYPE_PISTON",
-                DvlType::PhasedArray => "DVL_TYPE_PHASED_ARRAY",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "DVL_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
-                "DVL_TYPE_PISTON" => Some(Self::Piston),
-                "DVL_TYPE_PHASED_ARRAY" => Some(Self::PhasedArray),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CmdVel2D {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(double, tag = "2")]
-    pub velocity: f64,
+    /// / \brief Planetary surface model.
+    #[prost(enumeration = "spherical_coordinates::SurfaceModel", tag = "2")]
+    pub surface_model: i32,
+    /// / \brief Latitude in degrees.
     #[prost(double, tag = "3")]
-    pub theta: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CameraLens {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Type of projection of the lens
-    /// /        possible values are "gnomonical", "stereographic", "equidistant",
-    /// /        "equisolid_angle", "stereographic", "custom".
-    /// /        If you set this value to "custom" you need to specify at least one
-    /// /        of the `c1`, `c2`, `c3`, `f` or `fun`.
-    #[prost(string, tag = "2")]
-    pub r#type: ::prost::alloc::string::String,
-    /// / \brief Linear image scaling factor
-    #[prost(double, tag = "3")]
-    pub c1: f64,
-    /// / \brief Angle scaling factor
+    pub latitude_deg: f64,
+    /// / \brief Longitude in degrees.
     #[prost(double, tag = "4")]
-    pub c2: f64,
-    /// / \brief Angle offset factor
+    pub longitude_deg: f64,
+    /// / \brief Elevation in meters.
     #[prost(double, tag = "5")]
-    pub c3: f64,
-    /// / \brief Linear scaling factor, unlike `c1`, will be adjusted to match hfov
-    /// /        if scale_to_fov is set to `true`.
+    pub elevation: f64,
+    /// / \brief Heading in degrees.
     #[prost(double, tag = "6")]
-    pub f: f64,
-    /// / \brief Angle modification function
-    ///          possible values are "tan", "sin" and "id".
-    #[prost(string, tag = "7")]
-    pub fun: ::prost::alloc::string::String,
-    /// / \brief Scale image to fit horizontal FOV
-    #[prost(bool, tag = "8")]
-    pub scale_to_hfov: bool,
-    /// / \brief Everything outside of this angle will be hidden,
-    /// /        the angle is counted from camera's X (forward) axis.
+    pub heading_deg: f64,
+    /// / \brief Entity that the coordinates apply to.
+    /// / If not set, defaults to the world origin.
+    #[prost(message, optional, tag = "7")]
+    pub entity: ::core::option::Option<Entity>,
+    /// / \brief Equatorial axis in meters.
+    #[prost(double, tag = "8")]
+    pub surface_axis_equatorial: f64,
+    /// / \brief Polar axis in meters.
     #[prost(double, tag = "9")]
-    pub cutoff_angle: f64,
-    /// / \brief Horizontal field of view in radians.
-    #[prost(double, tag = "10")]
-    pub hfov: f64,
-    /// / \brief Size of cube map texture,
-    /// /        used to store intermediate rendering result.
-    #[prost(int32, tag = "11")]
-    pub env_texture_size: i32,
+    pub surface_axis_polar: f64,
 }
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParameterError {
-    #[prost(enumeration = "parameter_error::Type", tag = "1")]
-    pub data: i32,
-}
-/// Nested message and enum types in `ParameterError`.
-pub mod parameter_error {
+/// Nested message and enum types in `SphericalCoordinates`.
+pub mod spherical_coordinates {
+    /// / \brief Planetary surface models.
     #[derive(
         Clone,
         Copy,
@@ -3878,88 +2600,176 @@ pub mod parameter_error {
         ::prost::Enumeration
     )]
     #[repr(i32)]
-    pub enum Type {
-        Success = 0,
-        AlreadyDeclared = 1,
-        InvalidType = 2,
-        NotDeclared = 3,
+    pub enum SurfaceModel {
+        /// / \brief World Geodetic System 1984
+        EarthWgs84 = 0,
+        /// / \brief Model of the moon, based on the Selenographic
+        /// / coordinate system, see wikipedia: Selenographic
+        /// / Coordinate System.
+        MoonScs = 1,
+        /// / \brief Custom surface type
+        CustomSurface = 2,
     }
-    impl Type {
+    impl SurfaceModel {
         /// String value of the enum field names used in the ProtoBuf definition.
         ///
         /// The values are not transformed in any way and thus are considered stable
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                Type::Success => "SUCCESS",
-                Type::AlreadyDeclared => "ALREADY_DECLARED",
-                Type::InvalidType => "INVALID_TYPE",
-                Type::NotDeclared => "NOT_DECLARED",
+                SurfaceModel::EarthWgs84 => "EARTH_WGS84",
+                SurfaceModel::MoonScs => "MOON_SCS",
+                SurfaceModel::CustomSurface => "CUSTOM_SURFACE",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
         pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
             match value {
-                "SUCCESS" => Some(Self::Success),
-                "ALREADY_DECLARED" => Some(Self::AlreadyDeclared),
-                "INVALID_TYPE" => Some(Self::InvalidType),
-                "NOT_DECLARED" => Some(Self::NotDeclared),
+                "EARTH_WGS84" => Some(Self::EarthWgs84),
+                "MOON_SCS" => Some(Self::MoonScs),
+                "CUSTOM_SURFACE" => Some(Self::CustomSurface),
                 _ => None,
             }
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SphericalCoordinatesType {
+    /// / \brief Latitude, Longitude and Altitude by SurfaceType
+    Spherical = 0,
+    /// / \brief Earth centered, earth fixed Cartesian
+    Ecef = 1,
+    /// / \brief Local tangent plane (East, North, Up)
+    Global = 2,
+    /// / \brief Heading-adjusted tangent plane (X, Y, Z)
+    /// / This has kept a bug for backwards compatibility, use
+    /// / LOCAL2 for the correct behaviour.
+    Local = 3,
+    /// / \brief Heading-adjusted tangent plane (X, Y, Z)
+    Local2 = 4,
+}
+impl SphericalCoordinatesType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            SphericalCoordinatesType::Spherical => "SPHERICAL",
+            SphericalCoordinatesType::Ecef => "ECEF",
+            SphericalCoordinatesType::Global => "GLOBAL",
+            SphericalCoordinatesType::Local => "LOCAL",
+            SphericalCoordinatesType::Local2 => "LOCAL2",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SPHERICAL" => Some(Self::Spherical),
+            "ECEF" => Some(Self::Ecef),
+            "GLOBAL" => Some(Self::Global),
+            "LOCAL" => Some(Self::Local),
+            "LOCAL2" => Some(Self::Local2),
+            _ => None,
         }
     }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct JointWrench {
+pub struct EntityFactory {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub body_1_name: ::prost::alloc::string::String,
-    #[prost(uint32, tag = "3")]
-    pub body_1_id: u32,
-    #[prost(string, tag = "4")]
-    pub body_2_name: ::prost::alloc::string::String,
-    #[prost(uint32, tag = "5")]
-    pub body_2_id: u32,
-    #[prost(message, optional, tag = "6")]
-    pub body_1_wrench: ::core::option::Option<Wrench>,
+    /// / \brief Pose where the entity will be spawned in the world.
+    /// / If set, `spherical_coordinates` will be ignored.
     #[prost(message, optional, tag = "7")]
-    pub body_2_wrench: ::core::option::Option<Wrench>,
+    pub pose: ::core::option::Option<Pose>,
+    /// / \brief New name for the entity, overrides the name on the SDF.
+    #[prost(string, tag = "8")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Whether the server is allowed to rename the entity in case of
+    /// / overlap with existing entities.
+    #[prost(bool, tag = "9")]
+    pub allow_renaming: bool,
+    /// / \brief The pose will be defined relative to this frame. If left empty,
+    /// / the "world" frame will be used.
+    #[prost(string, tag = "10")]
+    pub relative_to: ::prost::alloc::string::String,
+    /// / \brief Spherical coordinates where the entity will be spawned in the
+    /// / world.
+    /// / If `pose` is also set:
+    /// / * `pose.position` is ignored in favor of latitude, longitude and
+    /// /   elevation.
+    /// / * `pose.orientation` is used in conjunction with heading:
+    /// /       Quaternion::fromEuler(0, 0, heading) * pose.orientation
+    #[prost(message, optional, tag = "11")]
+    pub spherical_coordinates: ::core::option::Option<SphericalCoordinates>,
+    /// / \brief Only one method is supported at a time
+    #[prost(oneof = "entity_factory::From", tags = "2, 3, 4, 5, 6")]
+    pub from: ::core::option::Option<entity_factory::From>,
+}
+/// Nested message and enum types in `EntityFactory`.
+pub mod entity_factory {
+    /// / \brief Only one method is supported at a time
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum From {
+        /// / \brief SDF description in string format.
+        #[prost(string, tag = "2")]
+        Sdf(::prost::alloc::string::String),
+        /// / \brief Full path to SDF file.
+        #[prost(string, tag = "3")]
+        SdfFilename(::prost::alloc::string::String),
+        /// / \brief Description of model to be inserted.
+        #[prost(message, tag = "4")]
+        Model(super::Model),
+        /// / \brief Description of light to be inserted.
+        #[prost(message, tag = "5")]
+        Light(super::Light),
+        /// / \brief Name of entity to clone.
+        #[prost(string, tag = "6")]
+        CloneName(::prost::alloc::string::String),
+    }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Joystick {
+pub struct EntityFactoryV {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// Translation measurements along the x,y,z
-    /// axes. These values should be normalized to
-    /// the range -1...1
-    #[prost(message, optional, tag = "2")]
-    pub translation: ::core::option::Option<Vector3d>,
-    /// Rotation measurements about the x,y,z
-    /// axes. These values should be normalized to
-    /// the range -1...1
-    #[prost(message, optional, tag = "3")]
-    pub rotation: ::core::option::Option<Vector3d>,
-    /// Button measurements
-    #[prost(int32, repeated, tag = "4")]
-    pub buttons: ::prost::alloc::vec::Vec<i32>,
+    /// / \brief The set of entity factory messages.
+    #[prost(message, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<EntityFactory>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Int32V {
+pub struct PluginV {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Vector of int data
-    #[prost(int32, repeated, tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<i32>,
+    /// / \brief Plugin messages.
+    #[prost(message, repeated, tag = "2")]
+    pub plugins: ::prost::alloc::vec::Vec<Plugin>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Request {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(int32, tag = "2")]
+    pub id: i32,
+    #[prost(string, tag = "3")]
+    pub request: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub data: ::prost::alloc::string::String,
+    #[prost(double, tag = "5")]
+    pub dbl_data: f64,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3996,100 +2806,297 @@ pub struct RaySensor {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Dataframe {
-    /// / \brief Header data.
+pub struct Oriented3DBox {
+    /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Address of the sender.
-    #[prost(string, tag = "2")]
-    pub src_address: ::prost::alloc::string::String,
-    /// / \brief Address of the destination.
-    #[prost(string, tag = "3")]
-    pub dst_address: ::prost::alloc::string::String,
-    /// / \brief Payload.
-    #[prost(bytes = "vec", tag = "4")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
+    /// / \brief Center of the bounding box in 3d camera coordinates
+    #[prost(message, optional, tag = "2")]
+    pub center: ::core::option::Option<Vector3d>,
+    /// / \brief Orientation of the bounding box in 3d camera coordinates
+    #[prost(message, optional, tag = "3")]
+    pub orientation: ::core::option::Option<Quaternion>,
+    /// / \brief The size of the bounding box on XYZ (width/height/depth)
+    #[prost(message, optional, tag = "4")]
+    pub box_size: ::core::option::Option<Vector3d>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LogicalCameraImage {
+pub struct AnnotatedOriented3DBox {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Pose of the logical camera.
+    /// / \brief oreinted 3d box
     #[prost(message, optional, tag = "2")]
-    pub pose: ::core::option::Option<Pose>,
-    /// / \brief All the models seen by the LogicalCamera
-    #[prost(message, repeated, tag = "3")]
-    pub model: ::prost::alloc::vec::Vec<logical_camera_image::Model>,
+    pub r#box: ::core::option::Option<Oriented3DBox>,
+    /// / \brief Label (class) of the box's object
+    #[prost(uint32, tag = "3")]
+    pub label: u32,
 }
-/// Nested message and enum types in `LogicalCameraImage`.
-pub mod logical_camera_image {
-    /// / \brief Information about a model that is reported by a
-    /// / LogicalCameraSensor
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LogStatus {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag = "2")]
+    pub sim_time: ::core::option::Option<Time>,
+    #[prost(message, optional, tag = "3")]
+    pub log_file: ::core::option::Option<log_status::LogFile>,
+}
+/// Nested message and enum types in `LogStatus`.
+pub mod log_status {
     #[derive(::rgz_derive::GzMessage)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Model {
-        /// / \brief Name of the detected model
+    pub struct LogFile {
         #[prost(string, tag = "1")]
-        pub name: ::prost::alloc::string::String,
-        /// / \brief Pose of the detected model. The pose is relative to the
-        /// / logical camera's pose.
-        #[prost(message, optional, tag = "2")]
-        pub pose: ::core::option::Option<super::Pose>,
+        pub uri: ::prost::alloc::string::String,
+        #[prost(string, tag = "2")]
+        pub base_path: ::prost::alloc::string::String,
+        #[prost(string, tag = "3")]
+        pub full_path: ::prost::alloc::string::String,
+        #[prost(float, tag = "4")]
+        pub size: f32,
+        #[prost(enumeration = "log_file::Units", tag = "5")]
+        pub size_units: i32,
+        #[prost(bool, tag = "6")]
+        pub record_resources: bool,
+    }
+    /// Nested message and enum types in `LogFile`.
+    pub mod log_file {
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum Units {
+            Bytes = 0,
+            KBytes = 1,
+            MBytes = 2,
+            GBytes = 3,
+        }
+        impl Units {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Units::Bytes => "BYTES",
+                    Units::KBytes => "K_BYTES",
+                    Units::MBytes => "M_BYTES",
+                    Units::GBytes => "G_BYTES",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "BYTES" => Some(Self::Bytes),
+                    "K_BYTES" => Some(Self::KBytes),
+                    "M_BYTES" => Some(Self::MBytes),
+                    "G_BYTES" => Some(Self::GBytes),
+                    _ => None,
+                }
+            }
+        }
     }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Request {
+pub struct AxisAligned2DBox {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    #[prost(int32, tag = "2")]
-    pub id: i32,
-    #[prost(string, tag = "3")]
-    pub request: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub data: ::prost::alloc::string::String,
-    #[prost(double, tag = "5")]
-    pub dbl_data: f64,
+    /// / \brief Minimum corner of the axis aligned bound box in image coord.
+    #[prost(message, optional, tag = "2")]
+    pub min_corner: ::core::option::Option<Vector2d>,
+    /// / \brief Maximum corner of the axis aligned bound box in the image coord.
+    #[prost(message, optional, tag = "3")]
+    pub max_corner: ::core::option::Option<Vector2d>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Fluid {
+pub struct AnnotatedAxisAligned2DBox {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// Name of the fluid
+    /// / \brief Axis aligned 2d bounding box
+    #[prost(message, optional, tag = "2")]
+    pub r#box: ::core::option::Option<AxisAligned2DBox>,
+    /// / \brief Label (class) of the box's object
+    #[prost(uint32, tag = "3")]
+    pub label: u32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AnnotatedAxisAligned2DBoxV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief vector of 2d annotated boxes
+    #[prost(message, repeated, tag = "2")]
+    pub annotated_box: ::prost::alloc::vec::Vec<AnnotatedAxisAligned2DBox>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JointAnimation {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
     #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    /// Position of each particle in the fluid.
+    pub model_name: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "3")]
-    pub position: ::prost::alloc::vec::Vec<Vector3d>,
+    pub joint: ::prost::alloc::vec::Vec<joint_animation::Joint>,
+    #[prost(message, repeated, tag = "4")]
+    pub time: ::prost::alloc::vec::Vec<Time>,
+}
+/// Nested message and enum types in `JointAnimation`.
+pub mod joint_animation {
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Joint {
+        #[prost(string, repeated, tag = "1")]
+        pub name: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        #[prost(double, repeated, tag = "2")]
+        pub angle: ::prost::alloc::vec::Vec<f64>,
+    }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RestResponse {
+pub struct ParameterDeclaration {
+    /// / \brief Parameter name.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Parameter type, i.e. the associated protobuf type.
+    #[prost(string, tag = "2")]
+    pub r#type: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParameterDeclarations {
+    /// / \brief Parameter declarations.
+    #[prost(message, repeated, tag = "1")]
+    pub parameter_declarations: ::prost::alloc::vec::Vec<ParameterDeclaration>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Duration {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief ID of the response message
-    #[prost(uint32, tag = "2")]
-    pub id: u32,
-    /// / \brief Type of response
-    #[prost(enumeration = "rest_response::Type", tag = "3")]
-    pub r#type: i32,
-    /// / \brief Message describing the response
-    #[prost(string, tag = "4")]
-    pub msg: ::prost::alloc::string::String,
+    /// / \brief Seconds
+    #[prost(int64, tag = "2")]
+    pub sec: i64,
+    /// / \brief Nanoseconds
+    #[prost(int32, tag = "3")]
+    pub nsec: i32,
 }
-/// Nested message and enum types in `RestResponse`.
-pub mod rest_response {
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JointTrajectoryPoint {
+    /// / \brief Position of each joint relative to their "0" position. Units are
+    /// / dependent on the joint type, where radians are used for revolute or
+    /// / continuous joints, and meters for prismatic joints
+    #[prost(double, repeated, tag = "1")]
+    pub positions: ::prost::alloc::vec::Vec<f64>,
+    /// / \brief Rate of change in position of each joint. Units are dependent on
+    /// / the joint type, where radians/second are used for revolute or continuous
+    /// / joints, and meters/second for prismatic joints
+    #[prost(double, repeated, tag = "2")]
+    pub velocities: ::prost::alloc::vec::Vec<f64>,
+    /// / \brief Rate of change in velocity of each joint. Units are dependent on
+    /// / the joint type, where radians/second^2 are used for revolute or
+    /// / continuous joints, and meters/second^2 for prismatic joints
+    #[prost(double, repeated, tag = "3")]
+    pub accelerations: ::prost::alloc::vec::Vec<f64>,
+    /// / \brief Torque or force applied at each joint. Units are dependent on the
+    /// / joint type, where newton-meters are used for revolute or continuous
+    /// / joints (torque), and newtons for prismatic joints (force)
+    #[prost(double, repeated, tag = "4")]
+    pub effort: ::prost::alloc::vec::Vec<f64>,
+    /// / \brief Desired time from the beginning of trajectory execution until
+    /// / this trajectory point should be reached. This value must be strictly
+    /// / increasing for consecutive points
+    #[prost(message, optional, tag = "5")]
+    pub time_from_start: ::core::option::Option<Duration>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JointTrajectory {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Ordered list of joint names that must be active during execution
+    /// / of this trajectory. The order shall correspond to the values in each
+    /// / trajectory point
+    #[prost(string, repeated, tag = "2")]
+    pub joint_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// / \brief Ordered list of time-parameterised trajectory points, which can
+    /// / describe positions, velocities, accelerations and/or effort for all
+    /// / active joints at each point in time. All points must be ordered
+    /// / according to their time from start, which must be strictly increasing
+    #[prost(message, repeated, tag = "3")]
+    pub points: ::prost::alloc::vec::Vec<JointTrajectoryPoint>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SensorV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Sensor messages.
+    #[prost(message, repeated, tag = "2")]
+    pub sensors: ::prost::alloc::vec::Vec<Sensor>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BatteryState {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Voltage in Volts
+    #[prost(double, tag = "2")]
+    pub voltage: f64,
+    /// / \brief Current draw in Ampere
+    #[prost(double, tag = "3")]
+    pub current: f64,
+    /// / \brief Amount of charge in the battery in Ah
+    #[prost(double, tag = "4")]
+    pub charge: f64,
+    /// / \brief Capacity in Ah
+    #[prost(double, tag = "5")]
+    pub capacity: f64,
+    /// / \brief Percentage of charge left
+    #[prost(double, tag = "6")]
+    pub percentage: f64,
+    /// / \brief The charging status
+    #[prost(enumeration = "battery_state::PowerSupplyStatus", tag = "7")]
+    pub power_supply_status: i32,
+}
+/// Nested message and enum types in `BatteryState`.
+pub mod battery_state {
     #[derive(
         Clone,
         Copy,
@@ -4102,40 +3109,140 @@ pub mod rest_response {
         ::prost::Enumeration
     )]
     #[repr(i32)]
-    pub enum Type {
-        /// / \brief Rest service call was successful
-        Success = 0,
-        /// / \brief Error calling rest service
-        Err = 1,
-        /// / \brief Response to a login request
-        Login = 2,
-        /// / \brief Response to a logout request
-        Logout = 3,
+    pub enum PowerSupplyStatus {
+        Unknown = 0,
+        Charging = 1,
+        Discharging = 2,
+        NotCharging = 3,
+        Full = 4,
     }
-    impl Type {
+    impl PowerSupplyStatus {
         /// String value of the enum field names used in the ProtoBuf definition.
         ///
         /// The values are not transformed in any way and thus are considered stable
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                Type::Success => "SUCCESS",
-                Type::Err => "ERR",
-                Type::Login => "LOGIN",
-                Type::Logout => "LOGOUT",
+                PowerSupplyStatus::Unknown => "UNKNOWN",
+                PowerSupplyStatus::Charging => "CHARGING",
+                PowerSupplyStatus::Discharging => "DISCHARGING",
+                PowerSupplyStatus::NotCharging => "NOT_CHARGING",
+                PowerSupplyStatus::Full => "FULL",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
         pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
             match value {
-                "SUCCESS" => Some(Self::Success),
-                "ERR" => Some(Self::Err),
-                "LOGIN" => Some(Self::Login),
-                "LOGOUT" => Some(Self::Logout),
+                "UNKNOWN" => Some(Self::Unknown),
+                "CHARGING" => Some(Self::Charging),
+                "DISCHARGING" => Some(Self::Discharging),
+                "NOT_CHARGING" => Some(Self::NotCharging),
+                "FULL" => Some(Self::Full),
                 _ => None,
             }
         }
     }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Version {
+    /// / \brief Major version.
+    #[prost(int32, tag = "1")]
+    pub major: i32,
+    /// / \brief Minor version.
+    #[prost(int32, tag = "2")]
+    pub minor: i32,
+    /// / \brief Patch version.
+    #[prost(int32, tag = "3")]
+    pub patch: i32,
+    /// / \brief Pre-release version.
+    #[prost(string, tag = "4")]
+    pub prerelease: ::prost::alloc::string::String,
+    /// / \brief Build version.
+    #[prost(string, tag = "5")]
+    pub build: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VersionedName {
+    /// / \brief Version information.
+    #[prost(message, optional, tag = "1")]
+    pub version: ::core::option::Option<Version>,
+    /// / \brief Name associated with the version.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WirelessNode {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub essid: ::prost::alloc::string::String,
+    #[prost(double, tag = "3")]
+    pub frequency: f64,
+    #[prost(double, tag = "4")]
+    pub signal_level: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TrackVisual {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Name of the visual to track
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Id of the visual to track
+    #[prost(uint32, tag = "3")]
+    pub id: u32,
+    /// / \brief True to have the tracking camera inherit the orientation of
+    /// / the tracked visual.
+    #[prost(bool, tag = "4")]
+    pub inherit_orientation: bool,
+    /// / \brief Minimum follow distance
+    #[prost(double, tag = "5")]
+    pub min_dist: f64,
+    /// / \brief Maximum follow distance
+    #[prost(double, tag = "6")]
+    pub max_dist: f64,
+    /// / \brief If set to true, the position of the camera is fixed.
+    #[prost(bool, tag = "7")]
+    pub r#static: bool,
+    /// / \brief If set to true, the position of the camera is relative to the
+    /// / model reference frame.
+    #[prost(bool, tag = "8")]
+    pub use_model_frame: bool,
+    /// / \brief Position of the camera.
+    #[prost(message, optional, tag = "9")]
+    pub xyz: ::core::option::Option<Vector3d>,
+    /// / \brief If set to true, the camera inherits the yaw rotation of the model.
+    #[prost(bool, tag = "10")]
+    pub inherit_yaw: bool,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GuiCamera {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub view_controller: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "4")]
+    pub pose: ::core::option::Option<Pose>,
+    #[prost(message, optional, tag = "5")]
+    pub track: ::core::option::Option<TrackVisual>,
+    /// / \brief Type of projection: "perspective" or "orthographic".
+    #[prost(string, tag = "6")]
+    pub projection_type: ::prost::alloc::string::String,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4264,153 +3371,98 @@ pub struct SerializedStep {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorldControlState {
+pub struct SdfGeneratorConfig {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief A WorldControl that allows for control of world functions
+    /// / \brief Global setting for SDFormat generation of entities
     #[prost(message, optional, tag = "2")]
-    pub world_control: ::core::option::Option<WorldControl>,
-    /// / \brief A SerializedState that can contain information about the
-    /// / state of an entity-comonent-system (ECS)
-    #[prost(message, optional, tag = "3")]
-    pub state: ::core::option::Option<SerializedState>,
+    pub global_entity_gen_config: ::core::option::Option<
+        sdf_generator_config::EntityGeneratorConfig,
+    >,
+    /// / \brief Per-entity override of global settings for SDFormat generation.
+    /// / The key is the scoped name of an entity.
+    #[prost(map = "string, message", tag = "3")]
+    pub override_entity_gen_configs: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        sdf_generator_config::EntityGeneratorConfig,
+    >,
 }
-/// / \brief Holds all the information needed to reconstruct an entity and its
-/// / components.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SerializedEntityMap {
-    /// / \brief The entity is uniquely identified by its ID.
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
-    /// / \brief All the components belonging to the entity.
-    #[prost(map = "int64, message", tag = "2")]
-    pub components: ::std::collections::HashMap<i64, SerializedComponent>,
-    /// / \brief Whether the entity and all its components should be removed at the
-    /// / current state.
-    #[prost(bool, tag = "3")]
-    pub remove: bool,
-}
-/// / \brief Holds all the information needed to reconstruct the state of an
-/// / entity-component-system (ECS) architecture at a given time.
-/// / An ECS's state consists of several entities, each with an arbitrary number
-/// / of components tied to them.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SerializedStateMap {
-    /// / \brief Header data, which contains the simulation time.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief All the entities currently in the simulation.
-    #[prost(map = "uint64, message", tag = "2")]
-    pub entities: ::std::collections::HashMap<u64, SerializedEntityMap>,
-    /// / \brief Indicates if there is any one time component change,
-    /// / or if all changes are periodic.
-    #[prost(bool, tag = "3")]
-    pub has_one_time_component_changes: bool,
-}
-/// / \brief All the data needed to step an ECS system, such as current
-/// / simulation time and entity states.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SerializedStepMap {
-    /// / \brief Iteration information, such as sim time and paused state.
-    #[prost(message, optional, tag = "1")]
-    pub stats: ::core::option::Option<WorldStatistics>,
-    /// / \brief State of entities and components.
-    #[prost(message, optional, tag = "2")]
-    pub state: ::core::option::Option<SerializedStateMap>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WirelessNode {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub essid: ::prost::alloc::string::String,
-    #[prost(double, tag = "3")]
-    pub frequency: f64,
-    #[prost(double, tag = "4")]
-    pub signal_level: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WirelessNodes {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub node: ::prost::alloc::vec::Vec<WirelessNode>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PointCloud {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub points: ::prost::alloc::vec::Vec<Vector3d>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LogPlaybackControl {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Pause/play the log file.
-    #[prost(bool, tag = "2")]
-    pub pause: bool,
-    /// / \brief Make a relative jump. The value indicates the number of
-    /// /        iterations that will be executed at once. If a negative
-    /// /        value is specified, the playback will jump backwards.
-    #[prost(sint32, tag = "3")]
-    pub multi_step: i32,
-    /// / \brief Jump to the beginning of the log file.
-    #[prost(bool, tag = "4")]
-    pub rewind: bool,
-    /// / \brief Jump to the end of the log file.
-    #[prost(bool, tag = "5")]
-    pub forward: bool,
-    /// / \brief Jump to a specific simulation time in the log file. The
-    /// /        playback service will load the frame with the closest
-    /// /        simulation time bigger than the "seek" value.
-    #[prost(message, optional, tag = "6")]
-    pub seek: ::core::option::Option<Time>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct JointAnimation {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub model_name: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "3")]
-    pub joint: ::prost::alloc::vec::Vec<joint_animation::Joint>,
-    #[prost(message, repeated, tag = "4")]
-    pub time: ::prost::alloc::vec::Vec<Time>,
-}
-/// Nested message and enum types in `JointAnimation`.
-pub mod joint_animation {
+/// Nested message and enum types in `SdfGeneratorConfig`.
+pub mod sdf_generator_config {
+    /// / \brief Configuration for SDFormat generation of entities (eg. models, actors, lights)
     #[derive(::rgz_derive::GzMessage)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Joint {
-        #[prost(string, repeated, tag = "1")]
-        pub name: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-        #[prost(double, repeated, tag = "2")]
-        pub angle: ::prost::alloc::vec::Vec<f64>,
+    pub struct EntityGeneratorConfig {
+        /// / \brief Expand and inline included entities
+        #[prost(message, optional, tag = "1")]
+        pub expand_include_tags: ::core::option::Option<super::Boolean>,
+        /// / \brief Use the Fuel version in generated URIs of Fuel resources
+        #[prost(message, optional, tag = "2")]
+        pub save_fuel_version: ::core::option::Option<super::Boolean>,
+        /// / \brief Use absolute paths for resources such as meshes
+        #[prost(message, optional, tag = "3")]
+        pub resources_use_absolute_paths: ::core::option::Option<super::Boolean>,
+        /// / \brief Copy model resources, such as meshes, and create a self contained
+        /// / model.
+        #[prost(message, optional, tag = "4")]
+        pub copy_model_resources: ::core::option::Option<super::Boolean>,
     }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SimEvent {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief ID of this event message
+    #[prost(uint32, tag = "2")]
+    pub id: u32,
+    /// / \brief Type of sim event
+    #[prost(string, tag = "3")]
+    pub r#type: ::prost::alloc::string::String,
+    /// / \brief Name of sim event
+    #[prost(string, tag = "4")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Statistics of the world
+    #[prost(message, optional, tag = "5")]
+    pub world_statistics: ::core::option::Option<WorldStatistics>,
+    /// / \brief Data describing the sim event
+    #[prost(string, tag = "6")]
+    pub data: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Int64 {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Integer data
+    #[prost(int64, tag = "2")]
+    pub data: i64,
+}
+/// / \brief Altimeter sensor data
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Altimeter {
+    /// Other Optional header data
+    ///
+    /// / Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Vertical position data, in meters.
+    #[prost(double, tag = "2")]
+    pub vertical_position: f64,
+    /// / \brief Vertical velocity data, in meters/second.
+    #[prost(double, tag = "3")]
+    pub vertical_velocity: f64,
+    /// / \brief Vertical reference.
+    #[prost(double, tag = "4")]
+    pub vertical_reference: f64,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4431,10 +3483,422 @@ pub struct Road {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParameterDeclarations {
-    /// / \brief Parameter declarations.
-    #[prost(message, repeated, tag = "1")]
-    pub parameter_declarations: ::prost::alloc::vec::Vec<ParameterDeclaration>,
+pub struct NavSatSensor {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Position sensing. Consists of horizontal and vertical noise
+    /// / properties
+    #[prost(message, optional, tag = "2")]
+    pub position: ::core::option::Option<nav_sat_sensor::Sensing>,
+    /// / \brief Velocity sensing. Consists of horizontal and vertical noise
+    /// / properties
+    #[prost(message, optional, tag = "3")]
+    pub velocity: ::core::option::Option<nav_sat_sensor::Sensing>,
+}
+/// Nested message and enum types in `NavSatSensor`.
+pub mod nav_sat_sensor {
+    /// / \brief Sensing information
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Sensing {
+        /// / \brief Horizontal noise
+        #[prost(message, optional, tag = "1")]
+        pub horizontal_noise: ::core::option::Option<super::SensorNoise>,
+        /// / \brief Vertical noise
+        #[prost(message, optional, tag = "2")]
+        pub vertical_noise: ::core::option::Option<super::SensorNoise>,
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorldReset {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(bool, tag = "2")]
+    pub all: bool,
+    #[prost(bool, tag = "3")]
+    pub time_only: bool,
+    #[prost(bool, tag = "4")]
+    pub model_only: bool,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorldControl {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(bool, tag = "2")]
+    pub pause: bool,
+    #[prost(bool, tag = "3")]
+    pub step: bool,
+    #[prost(uint32, tag = "4")]
+    pub multi_step: u32,
+    #[prost(message, optional, tag = "5")]
+    pub reset: ::core::option::Option<WorldReset>,
+    #[prost(uint32, tag = "6")]
+    pub seed: u32,
+    /// \brief A simulation time in the future to run to and then pause.
+    #[prost(message, optional, tag = "7")]
+    pub run_to_sim_time: ::core::option::Option<Time>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Wrench {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag = "2")]
+    pub force: ::core::option::Option<Vector3d>,
+    #[prost(message, optional, tag = "3")]
+    pub torque: ::core::option::Option<Vector3d>,
+    #[prost(message, optional, tag = "4")]
+    pub force_offset: ::core::option::Option<Vector3d>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UserCmd {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Unique id for user command.
+    #[prost(uint32, tag = "2")]
+    pub id: u32,
+    /// / \brief Description for the command.
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    /// / \brief Type of command.
+    #[prost(enumeration = "user_cmd::Type", tag = "4")]
+    pub r#type: i32,
+    /// / \brief For model modify commands.
+    #[prost(message, repeated, tag = "5")]
+    pub model: ::prost::alloc::vec::Vec<Model>,
+    /// / \brief For light modify commands.
+    #[prost(message, repeated, tag = "6")]
+    pub light: ::prost::alloc::vec::Vec<Light>,
+    /// / \brief Name of entity targeted by command
+    #[prost(string, tag = "7")]
+    pub entity_name: ::prost::alloc::string::String,
+    /// / \brief For World Control commands.
+    #[prost(message, optional, tag = "8")]
+    pub world_control: ::core::option::Option<WorldControl>,
+    /// / \brief Wrench for apply wrench commands.
+    #[prost(message, optional, tag = "9")]
+    pub wrench: ::core::option::Option<Wrench>,
+}
+/// Nested message and enum types in `UserCmd`.
+pub mod user_cmd {
+    /// / \brief Types of user commands
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// / \brief Moving an entity.
+        Moving = 0,
+        /// / \brief Controlling the world.
+        WorldControl = 1,
+        /// / \brief Applying wrench.
+        Wrench = 2,
+        /// / \brief Scaling an entity.
+        Scaling = 3,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Type::Moving => "MOVING",
+                Type::WorldControl => "WORLD_CONTROL",
+                Type::Wrench => "WRENCH",
+                Type::Scaling => "SCALING",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "MOVING" => Some(Self::Moving),
+                "WORLD_CONTROL" => Some(Self::WorldControl),
+                "WRENCH" => Some(Self::Wrench),
+                "SCALING" => Some(Self::Scaling),
+                _ => None,
+            }
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UserCmdStats {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief User commands in the undo list.
+    #[prost(message, repeated, tag = "2")]
+    pub undo_cmd: ::prost::alloc::vec::Vec<UserCmd>,
+    /// / \brief User commands in the redo list.
+    #[prost(message, repeated, tag = "3")]
+    pub redo_cmd: ::prost::alloc::vec::Vec<UserCmd>,
+}
+/// / \brief Message that describes an air speed sensor.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AirSpeedSensor {
+    /// / \brief header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Differential pressure (hPa).
+    #[prost(double, tag = "2")]
+    pub diff_pressure: f64,
+    /// / \brief Temperature (kelvin).
+    #[prost(double, tag = "3")]
+    pub temperature: f64,
+    /// / \brief Sensor speed noise.
+    #[prost(message, optional, tag = "4")]
+    pub pressure_noise: ::core::option::Option<SensorNoise>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParameterName {
+    /// / \brief Parameter name.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AnnotatedOriented3DBoxV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief vector of 3d annotated oreinted boxes
+    #[prost(message, repeated, tag = "2")]
+    pub annotated_box: ::prost::alloc::vec::Vec<AnnotatedOriented3DBox>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ServerControl {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub save_world_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub save_filename: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub open_filename: ::prost::alloc::string::String,
+    #[prost(bool, tag = "5")]
+    pub new_world: bool,
+    #[prost(bool, tag = "6")]
+    pub stop: bool,
+    #[prost(bool, tag = "7")]
+    pub clone: bool,
+    #[prost(uint32, tag = "8")]
+    pub new_port: u32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Gui {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(bool, tag = "2")]
+    pub fullscreen: bool,
+    #[prost(message, optional, tag = "3")]
+    pub camera: ::core::option::Option<GuiCamera>,
+    #[prost(message, repeated, tag = "4")]
+    pub plugin: ::prost::alloc::vec::Vec<Plugin>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Test {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Dataframe {
+    /// / \brief Header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Address of the sender.
+    #[prost(string, tag = "2")]
+    pub src_address: ::prost::alloc::string::String,
+    /// / \brief Address of the destination.
+    #[prost(string, tag = "3")]
+    pub dst_address: ::prost::alloc::string::String,
+    /// / \brief Payload.
+    #[prost(bytes = "vec", tag = "4")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FloatV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Vector of float data
+    #[prost(float, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<f32>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PoseWithCovariance {
+    /// / \brief Pose message.
+    #[prost(message, optional, tag = "1")]
+    pub pose: ::core::option::Option<Pose>,
+    /// / \brief Row-major representation of the 6x6 covariance matrix
+    /// / The orientation parameters use a fixed-axis representation.
+    /// / In order, the parameters are:
+    /// / (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
+    #[prost(message, optional, tag = "2")]
+    pub covariance: ::core::option::Option<FloatV>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NavSat {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Latitude in degrees
+    #[prost(double, tag = "2")]
+    pub latitude_deg: f64,
+    /// / \brief Longitude in degrees
+    #[prost(double, tag = "3")]
+    pub longitude_deg: f64,
+    /// / \brief Altitude in meters
+    #[prost(double, tag = "4")]
+    pub altitude: f64,
+    /// / \brief East velocity in the ENU frame, in m / s
+    #[prost(double, tag = "5")]
+    pub velocity_east: f64,
+    /// / \brief North velocity in the ENU frame, in m / s
+    #[prost(double, tag = "6")]
+    pub velocity_north: f64,
+    /// / \brief Up velocity in the ENU frame, in m / s
+    #[prost(double, tag = "7")]
+    pub velocity_up: f64,
+    /// / \brief ID of reference frame
+    #[prost(string, tag = "8")]
+    pub frame_id: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Pid {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag = "2")]
+    pub target_optional: ::core::option::Option<Double>,
+    #[prost(message, optional, tag = "3")]
+    pub p_gain_optional: ::core::option::Option<Double>,
+    #[prost(message, optional, tag = "4")]
+    pub i_gain_optional: ::core::option::Option<Double>,
+    #[prost(message, optional, tag = "5")]
+    pub d_gain_optional: ::core::option::Option<Double>,
+    #[prost(message, optional, tag = "6")]
+    pub i_max_optional: ::core::option::Option<Double>,
+    #[prost(message, optional, tag = "7")]
+    pub i_min_optional: ::core::option::Option<Double>,
+    #[prost(message, optional, tag = "8")]
+    pub limit_optional: ::core::option::Option<Double>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WheelSlipParametersCmd {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Entity which wheel slip parameters are going to be modified.
+    /// /
+    /// / The entity might be a model with at least one link or a link.
+    /// / If the entity is a model, the wheel slip parameters of all its
+    /// / links will be updated.
+    /// /
+    /// / The entity name (entity.name) will be used as an scoped name.
+    /// / For example, in this
+    /// / hierarchy:
+    /// /
+    /// / world_name
+    /// /  model_name
+    /// /    link_name
+    /// /
+    /// / All these names will return the link entity:
+    /// /
+    /// / * world_name::model_name::link_name
+    /// / * model_name::link_name
+    /// / * link_name
+    #[prost(message, optional, tag = "2")]
+    pub entity: ::core::option::Option<Entity>,
+    /// / \brief Unitless lateral slip ratio.
+    /// /
+    /// / See <https://en.wikipedia.org/wiki/Slip_(vehicle_dynamics>).
+    /// / to tangential force ratio (tangential / normal force).
+    /// / At each time step, these compliances are multiplied by
+    /// / the linear wheel spin velocity and divided by the wheel normal force
+    /// / parameter specified in the sdf.
+    #[prost(double, tag = "4")]
+    pub slip_compliance_lateral: f64,
+    /// / \brief Unitless longitudinal slip ratio.
+    /// /
+    /// / See <https://en.wikipedia.org/wiki/Slip_(vehicle_dynamics>).
+    /// / to tangential force ratio (tangential / normal force).
+    /// / At each time step, these compliances are multiplied by
+    /// / the linear wheel spin velocity and divided by the wheel normal force
+    /// / parameter specified in the sdf.
+    #[prost(double, tag = "5")]
+    pub slip_compliance_longitudinal: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UInt32 {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Integer data
+    #[prost(uint32, tag = "2")]
+    pub data: u32,
+}
+/// / \brief Message that encapsulates sensor data from a magnetometer.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Magnetometer {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Magnetic field strength (in Tesla) along body-frame axis
+    #[prost(message, optional, tag = "2")]
+    pub field_tesla: ::core::option::Option<Vector3d>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4453,55 +3917,771 @@ pub struct Selection {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TwistWithCovariance {
-    /// / \brief Twist message.
-    #[prost(message, optional, tag = "1")]
-    pub twist: ::core::option::Option<Twist>,
-    /// / \brief Row-major representation of the 6x6 covariance matrix
-    /// / The orientation parameters use a fixed-axis representation.
-    /// / In order, the parameters are:
-    /// / (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
-    #[prost(message, optional, tag = "2")]
-    pub covariance: ::core::option::Option<FloatV>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct OdometryWithCovariance {
-    /// / \brief Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Estimated pose.
-    #[prost(message, optional, tag = "2")]
-    pub pose_with_covariance: ::core::option::Option<PoseWithCovariance>,
-    /// / \brief Estimated linear and angular velocities.
-    #[prost(message, optional, tag = "3")]
-    pub twist_with_covariance: ::core::option::Option<TwistWithCovariance>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RestLogout {
+pub struct Any {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief ID of this request message
-    #[prost(uint32, tag = "2")]
-    pub id: u32,
-    /// / \brief the web service url
-    #[prost(string, tag = "3")]
-    pub url: ::prost::alloc::string::String,
+    /// / \brief Type of value that is contained in this message.
+    #[prost(enumeration = "any::ValueType", tag = "2")]
+    pub r#type: i32,
+    #[prost(oneof = "any::Value", tags = "3, 4, 5, 6, 7, 8, 9, 10, 11")]
+    pub value: ::core::option::Option<any::Value>,
+}
+/// Nested message and enum types in `Any`.
+pub mod any {
+    /// / \brief The type of data the message contains.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ValueType {
+        /// / \brief Indicates that the message is empty
+        None = 0,
+        /// / \brief Indicates that the message contains a double
+        Double = 1,
+        /// / \brief Indicates that the message contains an int32
+        Int32 = 2,
+        /// / \brief Indicates that the message contains a string
+        String = 3,
+        /// / \brief Indicates that the message contains a Boolean
+        Boolean = 4,
+        /// / \brief Indicates that the message contains a Vector3d
+        Vector3d = 5,
+        /// / \brief Indicates that the message contains a Color
+        Color = 6,
+        /// / \brief Indicates that the message contains a Pose
+        Pose3d = 7,
+        /// / \brief Indicates that the message contains a Quaternion
+        Quaterniond = 8,
+        /// / \brief Indicates that the message contains a Time
+        Time = 9,
+    }
+    impl ValueType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                ValueType::None => "NONE",
+                ValueType::Double => "DOUBLE",
+                ValueType::Int32 => "INT32",
+                ValueType::String => "STRING",
+                ValueType::Boolean => "BOOLEAN",
+                ValueType::Vector3d => "VECTOR3D",
+                ValueType::Color => "COLOR",
+                ValueType::Pose3d => "POSE3D",
+                ValueType::Quaterniond => "QUATERNIOND",
+                ValueType::Time => "TIME",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "NONE" => Some(Self::None),
+                "DOUBLE" => Some(Self::Double),
+                "INT32" => Some(Self::Int32),
+                "STRING" => Some(Self::String),
+                "BOOLEAN" => Some(Self::Boolean),
+                "VECTOR3D" => Some(Self::Vector3d),
+                "COLOR" => Some(Self::Color),
+                "POSE3D" => Some(Self::Pose3d),
+                "QUATERNIOND" => Some(Self::Quaterniond),
+                "TIME" => Some(Self::Time),
+                _ => None,
+            }
+        }
+    }
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Value {
+        /// / \brief A double value
+        #[prost(double, tag = "3")]
+        DoubleValue(f64),
+        /// / \brief An int32 value
+        #[prost(int32, tag = "4")]
+        IntValue(i32),
+        /// / \brief A string value
+        #[prost(string, tag = "5")]
+        StringValue(::prost::alloc::string::String),
+        /// / \brief A boolean value
+        #[prost(bool, tag = "6")]
+        BoolValue(bool),
+        /// / \brief A Vector3d value
+        #[prost(message, tag = "7")]
+        Vector3dValue(super::Vector3d),
+        /// / \brief A Color value
+        #[prost(message, tag = "8")]
+        ColorValue(super::Color),
+        /// / \brief A Pose value
+        #[prost(message, tag = "9")]
+        Pose3dValue(super::Pose),
+        /// / \brief A Quaternion value
+        #[prost(message, tag = "10")]
+        QuaternionValue(super::Quaternion),
+        /// / \brief A Time value
+        #[prost(message, tag = "11")]
+        TimeValue(super::Time),
+    }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Int64V {
+pub struct Param {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief A set of name, value pairs.
+    #[prost(map = "string, message", tag = "2")]
+    pub params: ::std::collections::HashMap<::prost::alloc::string::String, Any>,
+    /// / \brief Params nested within this one.
+    #[prost(message, repeated, tag = "3")]
+    pub children: ::prost::alloc::vec::Vec<Param>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParamV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Repeated params.
+    #[prost(message, repeated, tag = "2")]
+    pub param: ::prost::alloc::vec::Vec<Param>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CameraLens {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Type of projection of the lens
+    /// /        possible values are "gnomonical", "stereographic", "equidistant",
+    /// /        "equisolid_angle", "stereographic", "custom".
+    /// /        If you set this value to "custom" you need to specify at least one
+    /// /        of the `c1`, `c2`, `c3`, `f` or `fun`.
+    #[prost(string, tag = "2")]
+    pub r#type: ::prost::alloc::string::String,
+    /// / \brief Linear image scaling factor
+    #[prost(double, tag = "3")]
+    pub c1: f64,
+    /// / \brief Angle scaling factor
+    #[prost(double, tag = "4")]
+    pub c2: f64,
+    /// / \brief Angle offset factor
+    #[prost(double, tag = "5")]
+    pub c3: f64,
+    /// / \brief Linear scaling factor, unlike `c1`, will be adjusted to match hfov
+    /// /        if scale_to_fov is set to `true`.
+    #[prost(double, tag = "6")]
+    pub f: f64,
+    /// / \brief Angle modification function
+    ///          possible values are "tan", "sin" and "id".
+    #[prost(string, tag = "7")]
+    pub fun: ::prost::alloc::string::String,
+    /// / \brief Scale image to fit horizontal FOV
+    #[prost(bool, tag = "8")]
+    pub scale_to_hfov: bool,
+    /// / \brief Everything outside of this angle will be hidden,
+    /// /        the angle is counted from camera's X (forward) axis.
+    #[prost(double, tag = "9")]
+    pub cutoff_angle: f64,
+    /// / \brief Horizontal field of view in radians.
+    #[prost(double, tag = "10")]
+    pub hfov: f64,
+    /// / \brief Size of cube map texture,
+    /// /        used to store intermediate rendering result.
+    #[prost(int32, tag = "11")]
+    pub env_texture_size: i32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Twist {
+    /// / \brief Optional header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Linear velocity in 3d space.
+    #[prost(message, optional, tag = "2")]
+    pub linear: ::core::option::Option<Vector3d>,
+    /// / \brief Angular velocity in 3d space.
+    #[prost(message, optional, tag = "3")]
+    pub angular: ::core::option::Option<Vector3d>,
+}
+/// / \brief Used for specifying how to load environmental data
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DataLoadPathOptions {
+    /// / \brief File path to load
+    #[prost(string, tag = "1")]
+    pub path: ::prost::alloc::string::String,
+    /// / \brief Name of time axis
+    #[prost(string, tag = "2")]
+    pub time: ::prost::alloc::string::String,
+    /// / \brief Is the data static in time
+    #[prost(bool, tag = "3")]
+    pub static_time: bool,
+    /// / \brief Name of x axis
+    #[prost(string, tag = "4")]
+    pub x: ::prost::alloc::string::String,
+    /// / \brief Name of y axis
+    #[prost(string, tag = "5")]
+    pub y: ::prost::alloc::string::String,
+    /// / \brief Name of z axis
+    #[prost(string, tag = "6")]
+    pub z: ::prost::alloc::string::String,
+    /// / Units
+    #[prost(enumeration = "data_load_path_options::DataAngularUnits", tag = "7")]
+    pub units: i32,
+    /// / Spherical Coodinate type
+    #[prost(enumeration = "SphericalCoordinatesType", tag = "8")]
+    pub coordinate_type: i32,
+}
+/// Nested message and enum types in `DataLoadPathOptions`.
+pub mod data_load_path_options {
+    /// / \brief Units used by spherical coordinates
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum DataAngularUnits {
+        Radians = 0,
+        Degrees = 1,
+    }
+    impl DataAngularUnits {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                DataAngularUnits::Radians => "RADIANS",
+                DataAngularUnits::Degrees => "DEGREES",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "RADIANS" => Some(Self::Radians),
+                "DEGREES" => Some(Self::Degrees),
+                _ => None,
+            }
+        }
+    }
+}
+/// / \brief This message contains information about the performance of
+/// / a sensor in the world.
+/// / If the sensor is a camera then it will publish the frame per second (fps).
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PerformanceSensorMetrics {
+    /// / \brief Sensor name
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief The update rate of the sensor in real time.
+    #[prost(double, tag = "2")]
+    pub real_update_rate: f64,
+    /// / \brief The update rate of the sensor in simulation time.
+    #[prost(double, tag = "3")]
+    pub sim_update_rate: f64,
+    /// / \brief The nominal update rate defined to the sensor.
+    #[prost(double, tag = "4")]
+    pub nominal_update_rate: f64,
+    /// / \brief If the sensor is a camera then this field should be filled
+    /// / with average fps in real time.
+    #[prost(message, optional, tag = "5")]
+    pub fps_optional: ::core::option::Option<Double>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Fluid {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// Name of the fluid
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    /// Position of each particle in the fluid.
+    #[prost(message, repeated, tag = "3")]
+    pub position: ::prost::alloc::vec::Vec<Vector3d>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EntityWrench {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Entity to apply the wrench to.
+    #[prost(message, optional, tag = "2")]
+    pub entity: ::core::option::Option<Entity>,
+    /// / \brief Wrench to apply.
+    #[prost(message, optional, tag = "3")]
+    pub wrench: ::core::option::Option<Wrench>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Int32V {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
     /// / \brief Vector of int data
-    #[prost(int64, repeated, tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<i64>,
+    #[prost(int32, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<i32>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParameterError {
+    #[prost(enumeration = "parameter_error::Type", tag = "1")]
+    pub data: i32,
+}
+/// Nested message and enum types in `ParameterError`.
+pub mod parameter_error {
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        Success = 0,
+        AlreadyDeclared = 1,
+        InvalidType = 2,
+        NotDeclared = 3,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Type::Success => "SUCCESS",
+                Type::AlreadyDeclared => "ALREADY_DECLARED",
+                Type::InvalidType => "INVALID_TYPE",
+                Type::NotDeclared => "NOT_DECLARED",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "SUCCESS" => Some(Self::Success),
+                "ALREADY_DECLARED" => Some(Self::AlreadyDeclared),
+                "INVALID_TYPE" => Some(Self::InvalidType),
+                "NOT_DECLARED" => Some(Self::NotDeclared),
+                _ => None,
+            }
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PoseAnimation {
+    #[prost(string, tag = "1")]
+    pub model_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub model_id: u32,
+    #[prost(message, repeated, tag = "3")]
+    pub pose: ::prost::alloc::vec::Vec<Pose>,
+    #[prost(message, repeated, tag = "4")]
+    pub time: ::prost::alloc::vec::Vec<Time>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DvlKinematicEstimate {
+    /// / \brief Estimate frame of reference (incl. conventions).
+    #[prost(enumeration = "dvl_kinematic_estimate::ReferenceType", tag = "1")]
+    pub reference: i32,
+    /// / \brief Estimate mean.
+    #[prost(message, optional, tag = "2")]
+    pub mean: ::core::option::Option<Vector3d>,
+    /// / \brief Estimate covariance matrix.
+    /// / A 3 x 3 row-major matrix using a flat contiguous layout.
+    #[prost(double, repeated, tag = "3")]
+    pub covariance: ::prost::alloc::vec::Vec<f64>,
+}
+/// Nested message and enum types in `DVLKinematicEstimate`.
+pub mod dvl_kinematic_estimate {
+    /// / \brief Frames of reference (incl. conventions)
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ReferenceType {
+        /// / \brief Unspecific frame of reference.
+        DvlReferenceUnspecified = 0,
+        /// / \brief Earth bound frame of reference (typically ENU).
+        DvlReferenceEarth = 1,
+        /// / \brief Ship bound frame of reference (typically FSK).
+        DvlReferenceShip = 2,
+    }
+    impl ReferenceType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                ReferenceType::DvlReferenceUnspecified => "DVL_REFERENCE_UNSPECIFIED",
+                ReferenceType::DvlReferenceEarth => "DVL_REFERENCE_EARTH",
+                ReferenceType::DvlReferenceShip => "DVL_REFERENCE_SHIP",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "DVL_REFERENCE_UNSPECIFIED" => Some(Self::DvlReferenceUnspecified),
+                "DVL_REFERENCE_EARTH" => Some(Self::DvlReferenceEarth),
+                "DVL_REFERENCE_SHIP" => Some(Self::DvlReferenceShip),
+                _ => None,
+            }
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DvlRangeEstimate {
+    /// / \brief Estimate mean.
+    #[prost(double, tag = "1")]
+    pub mean: f64,
+    /// / \brief Estimate variance.
+    #[prost(double, tag = "2")]
+    pub variance: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DvlBeamState {
+    /// / \brief Beam ID.
+    #[prost(int32, tag = "1")]
+    pub id: i32,
+    /// / \brief Beam velocity estimate, measured along
+    /// / its axis, in meters per second.
+    #[prost(message, optional, tag = "2")]
+    pub velocity: ::core::option::Option<DvlKinematicEstimate>,
+    /// / \brief Beam range estimate, in meters.
+    #[prost(message, optional, tag = "3")]
+    pub range: ::core::option::Option<DvlRangeEstimate>,
+    /// / \brief Beam signal strength indicator.
+    #[prost(double, tag = "4")]
+    pub rssi: f64,
+    /// / \brief Measured background noise spectral density,
+    /// / in watts per hertz.
+    #[prost(double, tag = "5")]
+    pub nsd: f64,
+    /// / \brief Whether beam is locked to its target or not.
+    /// / A beam is said to be locked when it can reliably
+    /// / measure signal reflections.
+    #[prost(bool, tag = "6")]
+    pub locked: bool,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PropagationParticle {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(double, tag = "2")]
+    pub x: f64,
+    #[prost(double, tag = "3")]
+    pub y: f64,
+    #[prost(double, tag = "4")]
+    pub signal_level: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UndoRedo {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief True to undo, false to redo.
+    #[prost(bool, tag = "2")]
+    pub undo: bool,
+    /// / \brief Unique id of the user command. If this is provided, all commands
+    /// / leading to that will be undone / redone.
+    #[prost(uint32, tag = "3")]
+    pub id: u32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StringMsgV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// / \brief (Copied from the ROS message): This message holds a collection of
+/// / N-dimensional points, which may contain additional information such as
+/// / normals, intensity, etc. The point data is stored as a binary blob, its
+/// / layout described by the contents of the "fields" array.
+/// /
+/// / The point cloud data may be organized 2d (image-like) or 1d
+/// / (unordered). Point clouds organized as 2d images may be produced by
+/// / camera depth sensors such as stereo or time-of-flight.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PointCloudPacked {
+    /// / \brief Optional header data. This should contain time of sensor data
+    /// / acquisition, and the coordinate frame ID (for 3D points).
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Information that describes the data contained in the `data` field.
+    #[prost(message, repeated, tag = "2")]
+    pub field: ::prost::alloc::vec::Vec<point_cloud_packed::Field>,
+    /// / \brief Height of a 2D structured point cloud, or 1 if the point cloud is
+    /// / unordered.
+    #[prost(uint32, tag = "3")]
+    pub height: u32,
+    /// / \brief Width of a 2D structured point cloud, or length of the point cloud
+    /// / if the point cloud is unordered.
+    #[prost(uint32, tag = "4")]
+    pub width: u32,
+    /// / \brief Is this data big endian?
+    #[prost(bool, tag = "5")]
+    pub is_bigendian: bool,
+    /// / \brief Length of a point in bytes.
+    #[prost(uint32, tag = "6")]
+    pub point_step: u32,
+    /// / \brief Length of row in bytes.
+    #[prost(uint32, tag = "7")]
+    pub row_step: u32,
+    /// / \brief The point data, size is (row_step * height);
+    #[prost(bytes = "vec", tag = "8")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+    /// / \brief True if there are not invalid points.
+    #[prost(bool, tag = "9")]
+    pub is_dense: bool,
+}
+/// Nested message and enum types in `PointCloudPacked`.
+pub mod point_cloud_packed {
+    /// / \brief A field that describes the format of the data field.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Field {
+        /// / \brief Name of the field.
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        /// / \brief Offset from start of point struct
+        #[prost(uint32, tag = "2")]
+        pub offset: u32,
+        /// / \brief Datatype enumeration
+        #[prost(enumeration = "field::DataType", tag = "3")]
+        pub datatype: i32,
+        /// / \brief How many elements in the field
+        #[prost(uint32, tag = "4")]
+        pub count: u32,
+    }
+    /// Nested message and enum types in `Field`.
+    pub mod field {
+        /// Datatype for the point field.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum DataType {
+            Int8 = 0,
+            Uint8 = 1,
+            Int16 = 2,
+            Uint16 = 3,
+            Int32 = 4,
+            Uint32 = 5,
+            Float32 = 6,
+            Float64 = 7,
+        }
+        impl DataType {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    DataType::Int8 => "INT8",
+                    DataType::Uint8 => "UINT8",
+                    DataType::Int16 => "INT16",
+                    DataType::Uint16 => "UINT16",
+                    DataType::Int32 => "INT32",
+                    DataType::Uint32 => "UINT32",
+                    DataType::Float32 => "FLOAT32",
+                    DataType::Float64 => "FLOAT64",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "INT8" => Some(Self::Int8),
+                    "UINT8" => Some(Self::Uint8),
+                    "INT16" => Some(Self::Int16),
+                    "UINT16" => Some(Self::Uint16),
+                    "INT32" => Some(Self::Int32),
+                    "UINT32" => Some(Self::Uint32),
+                    "FLOAT32" => Some(Self::Float32),
+                    "FLOAT64" => Some(Self::Float64),
+                    _ => None,
+                }
+            }
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DoubleV {
+    /// / \brief Vector of double data
+    #[prost(double, repeated, tag = "1")]
+    pub data: ::prost::alloc::vec::Vec<f64>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Clock {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag = "2")]
+    pub system: ::core::option::Option<Time>,
+    #[prost(message, optional, tag = "3")]
+    pub real: ::core::option::Option<Time>,
+    #[prost(message, optional, tag = "4")]
+    pub sim: ::core::option::Option<Time>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CmdVel2D {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(double, tag = "2")]
+    pub velocity: f64,
+    #[prost(double, tag = "3")]
+    pub theta: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PoseV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, repeated, tag = "2")]
+    pub pose: ::prost::alloc::vec::Vec<Pose>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Packet {
+    #[prost(string, tag = "1")]
+    pub topic: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub r#type: ::prost::alloc::string::String,
+    #[prost(oneof = "packet::Content", tags = "3, 4, 5, 6, 7, 8, 9, 10, 11, 12")]
+    pub content: ::core::option::Option<packet::Content>,
+}
+/// Nested message and enum types in `Packet`.
+pub mod packet {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Content {
+        #[prost(message, tag = "3")]
+        CmdVel2d(super::CmdVel2D),
+        #[prost(message, tag = "4")]
+        Image(super::Image),
+        #[prost(message, tag = "5")]
+        StringMsgV(super::StringMsgV),
+        #[prost(message, tag = "6")]
+        WebRequest(super::WebRequest),
+        #[prost(message, tag = "7")]
+        Pose(super::Pose),
+        #[prost(message, tag = "8")]
+        Doublev(super::DoubleV),
+        #[prost(message, tag = "9")]
+        PoseV(super::PoseV),
+        #[prost(message, tag = "10")]
+        Time(super::Time),
+        #[prost(message, tag = "11")]
+        Clock(super::Clock),
+        #[prost(message, tag = "12")]
+        WorldStats(super::WorldStatistics),
+    }
+}
+/// / \brief Fluid pressure data.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FluidPressure {
+    /// Other Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Pressure reading in Pascals
+    #[prost(double, tag = "2")]
+    pub pressure: f64,
+    /// / \brief Pressure variance. 0 is interpreted as variance unknown.
+    #[prost(double, tag = "3")]
+    pub variance: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UInt64V {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Vector of int data
+    #[prost(uint64, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<u64>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4794,38 +4974,313 @@ pub struct MarkerV {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LaserScan {
+pub struct PropagationGrid {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, repeated, tag = "2")]
+    pub particle: ::prost::alloc::vec::Vec<PropagationParticle>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Publish {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
     #[prost(string, tag = "2")]
-    pub frame: ::prost::alloc::string::String,
+    pub topic: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub msg_type: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub host: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "5")]
+    pub port: u32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Publishers {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, repeated, tag = "2")]
+    pub publisher: ::prost::alloc::vec::Vec<Publish>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorldControlState {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief A WorldControl that allows for control of world functions
+    #[prost(message, optional, tag = "2")]
+    pub world_control: ::core::option::Option<WorldControl>,
+    /// / \brief A SerializedState that can contain information about the
+    /// / state of an entity-comonent-system (ECS)
     #[prost(message, optional, tag = "3")]
-    pub world_pose: ::core::option::Option<Pose>,
-    #[prost(double, tag = "4")]
-    pub angle_min: f64,
-    #[prost(double, tag = "5")]
-    pub angle_max: f64,
-    #[prost(double, tag = "6")]
-    pub angle_step: f64,
-    #[prost(double, tag = "7")]
-    pub range_min: f64,
-    #[prost(double, tag = "8")]
-    pub range_max: f64,
-    #[prost(uint32, tag = "9")]
-    pub count: u32,
-    #[prost(double, tag = "10")]
-    pub vertical_angle_min: f64,
-    #[prost(double, tag = "11")]
-    pub vertical_angle_max: f64,
-    #[prost(double, tag = "12")]
-    pub vertical_angle_step: f64,
-    #[prost(uint32, tag = "13")]
-    pub vertical_count: u32,
-    #[prost(double, repeated, tag = "14")]
-    pub ranges: ::prost::alloc::vec::Vec<f64>,
-    #[prost(double, repeated, tag = "15")]
-    pub intensities: ::prost::alloc::vec::Vec<f64>,
+    pub state: ::core::option::Option<SerializedState>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CameraCmd {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub follow_model: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LogControl {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(bool, tag = "2")]
+    pub start: bool,
+    #[prost(bool, tag = "3")]
+    pub stop: bool,
+    #[prost(bool, tag = "4")]
+    pub paused: bool,
+    #[prost(string, tag = "5")]
+    pub base_path: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub encoding: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub record_resources: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Bytes {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Bytes data
+    #[prost(bytes = "vec", tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VersionRange {
+    /// / \brief Min version.
+    #[prost(message, optional, tag = "1")]
+    pub min: ::core::option::Option<Version>,
+    /// / \brief Max version.
+    #[prost(message, optional, tag = "2")]
+    pub max: ::core::option::Option<Version>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Cessna {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Current RPM of the propeller.
+    #[prost(float, tag = "2")]
+    pub propeller_speed: f32,
+    /// / \brief Current left aileron angle in rads.
+    #[prost(float, tag = "3")]
+    pub left_aileron: f32,
+    /// / \brief Current left flap angle in rads.
+    #[prost(float, tag = "4")]
+    pub left_flap: f32,
+    /// / \brief Current right aileron angle in rads.
+    #[prost(float, tag = "5")]
+    pub right_aileron: f32,
+    /// / \brief Current right flap angle in rads.
+    #[prost(float, tag = "6")]
+    pub right_flap: f32,
+    /// / \brief Current elevators angle in rads.
+    #[prost(float, tag = "7")]
+    pub elevators: f32,
+    /// / \brief Current ruddle angle in rads.
+    #[prost(float, tag = "8")]
+    pub rudder: f32,
+    /// / \brief Target RPM of the propeller.
+    #[prost(float, tag = "9")]
+    pub cmd_propeller_speed: f32,
+    /// / \brief Target left aileron angle in rads.
+    #[prost(float, tag = "10")]
+    pub cmd_left_aileron: f32,
+    /// / \brief Target left flap angle in rads.
+    #[prost(float, tag = "11")]
+    pub cmd_left_flap: f32,
+    /// / \brief Target right aileron angle in rads.
+    #[prost(float, tag = "12")]
+    pub cmd_right_aileron: f32,
+    /// / \brief Target right flap angle in rads.
+    #[prost(float, tag = "13")]
+    pub cmd_right_flap: f32,
+    /// / \brief Target elevators angle in rads.
+    #[prost(float, tag = "14")]
+    pub cmd_elevators: f32,
+    /// / \brief Target ruddle angle in rads.
+    #[prost(float, tag = "15")]
+    pub cmd_rudder: f32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FuelMetadata {
+    /// / \brief Name of the resource.
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Description of the resource.
+    #[prost(string, tag = "4")]
+    pub description: ::prost::alloc::string::String,
+    /// / \brief Version number of the resource. This version is set by Fuel.
+    #[prost(int32, tag = "5")]
+    pub version: i32,
+    /// / \brief Authors of this resource.
+    #[prost(message, repeated, tag = "6")]
+    pub authors: ::prost::alloc::vec::Vec<fuel_metadata::Contact>,
+    /// / \brief Legal information, such as copyright and license specifications.
+    #[prost(message, optional, tag = "7")]
+    pub legal: ::core::option::Option<fuel_metadata::Legal>,
+    /// / \brief Tags for a resource.
+    #[prost(string, repeated, tag = "8")]
+    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// A list of key-value pairs that can contain arbitrary user data.
+    #[prost(map = "string, string", tag = "9")]
+    pub annotations: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// / \brief Resources that this resource depends on.
+    #[prost(message, repeated, tag = "10")]
+    pub dependencies: ::prost::alloc::vec::Vec<fuel_metadata::Dependency>,
+    /// / \brief List of tools/libraries with version numbers that are compatible
+    /// / with this resource.
+    #[prost(message, repeated, tag = "11")]
+    pub compatibilities: ::prost::alloc::vec::Vec<fuel_metadata::Compatibility>,
+    /// / \brief Categories associated with this resource.
+    #[prost(message, optional, tag = "12")]
+    pub categories: ::core::option::Option<fuel_metadata::Categories>,
+    /// / \brief A Fuel resource has to be one of the following.
+    #[prost(oneof = "fuel_metadata::ResourceType", tags = "1, 2")]
+    pub resource_type: ::core::option::Option<fuel_metadata::ResourceType>,
+}
+/// Nested message and enum types in `FuelMetadata`.
+pub mod fuel_metadata {
+    /// / \brief Contact information.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Contact {
+        /// / \brief Contact name.
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        /// / \brief Contact email.
+        #[prost(string, tag = "2")]
+        pub email: ::prost::alloc::string::String,
+    }
+    /// / \brief Legal information, including copyright and license specifications.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Legal {
+        /// / \brief Copyright information, such as "Copyright 1974, John Doe"
+        #[prost(string, tag = "1")]
+        pub copyright: ::prost::alloc::string::String,
+        /// / \brief License, such as "Apache-2.0"
+        #[prost(string, tag = "2")]
+        pub license: ::prost::alloc::string::String,
+    }
+    /// / \brief Information about a model resource.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Model {
+        /// / \brief Main model file, e.g. "model.sdf".
+        #[prost(string, tag = "1")]
+        pub file: ::prost::alloc::string::String,
+        /// / \brief Name and version of the file format used by the file.
+        #[prost(message, optional, tag = "2")]
+        pub file_format: ::core::option::Option<super::VersionedName>,
+    }
+    /// / \brief Information about a world resource.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct World {
+        /// / \brief Main world file, e.g. "world.sdf".
+        #[prost(string, tag = "1")]
+        pub file: ::prost::alloc::string::String,
+        /// / \brief Name and version of the file format used by the file.
+        #[prost(message, optional, tag = "2")]
+        pub file_format: ::core::option::Option<super::VersionedName>,
+    }
+    /// / \brief Definition of a dependency
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Dependency {
+        /// / \brief Dependency uri.
+        #[prost(string, tag = "1")]
+        pub uri: ::prost::alloc::string::String,
+    }
+    /// / \brief A message containing a tool name and a version or range of
+    /// / versions, e.g.
+    /// /   tools { name: "bullet" version_range { min: {major: 3 } } } }
+    /// /   tools { name: "gazebo" version { major: 11 } }
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Compatibility {
+        /// / \brief Name of the tool/library.
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        /// / \brief If version is omitted, it is assumed that the model is
+        /// / compatible with all versions of the tool.
+        #[prost(oneof = "compatibility::VersionType", tags = "2, 3")]
+        pub version_type: ::core::option::Option<compatibility::VersionType>,
+    }
+    /// Nested message and enum types in `Compatibility`.
+    pub mod compatibility {
+        /// / \brief If version is omitted, it is assumed that the model is
+        /// / compatible with all versions of the tool.
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum VersionType {
+            /// / \brief Exact version that the model is compatible with.
+            #[prost(message, tag = "2")]
+            Version(super::super::Version),
+            /// / \brief A range of compatible versions.
+            #[prost(message, tag = "3")]
+            VersionRange(super::super::VersionRange),
+        }
+    }
+    /// / \brief Categories associated with this resource. The set of
+    /// / Fuel categories are available at
+    /// / <https://fuel.ignitionrobotics.org/1.0/categories.>
+    /// /
+    /// / A limited number of categories can be assigned to a Fuel resource.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Categories {
+        /// / \brief First category.
+        #[prost(string, tag = "1")]
+        pub first: ::prost::alloc::string::String,
+        /// / \brief Second category.
+        #[prost(string, tag = "2")]
+        pub second: ::prost::alloc::string::String,
+    }
+    /// / \brief A Fuel resource has to be one of the following.
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ResourceType {
+        #[prost(message, tag = "1")]
+        Model(Model),
+        #[prost(message, tag = "2")]
+        World(World),
+    }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4915,657 +5370,70 @@ pub mod actor {
         pub waypoints: ::prost::alloc::vec::Vec<Waypoint>,
     }
 }
-/// / \brief Message that encapsulates sensor data from a magnetometer.
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Magnetometer {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Magnetic field strength (in Tesla) along body-frame axis
-    #[prost(message, optional, tag = "2")]
-    pub field_tesla: ::core::option::Option<Vector3d>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Clock {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag = "2")]
-    pub system: ::core::option::Option<Time>,
-    #[prost(message, optional, tag = "3")]
-    pub real: ::core::option::Option<Time>,
-    #[prost(message, optional, tag = "4")]
-    pub sim: ::core::option::Option<Time>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PoseV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub pose: ::prost::alloc::vec::Vec<Pose>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct StringMsgV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, repeated, tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WebRequest {
+pub struct LaserScan {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
     #[prost(string, tag = "2")]
-    pub operation: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub topic: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub msg_type: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub compression: ::prost::alloc::string::String,
-    #[prost(double, tag = "6")]
-    pub hz: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Packet {
-    #[prost(string, tag = "1")]
-    pub topic: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub r#type: ::prost::alloc::string::String,
-    #[prost(oneof = "packet::Content", tags = "3, 4, 5, 6, 7, 8, 9, 10, 11, 12")]
-    pub content: ::core::option::Option<packet::Content>,
-}
-/// Nested message and enum types in `Packet`.
-pub mod packet {
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Content {
-        #[prost(message, tag = "3")]
-        CmdVel2d(super::CmdVel2D),
-        #[prost(message, tag = "4")]
-        Image(super::Image),
-        #[prost(message, tag = "5")]
-        StringMsgV(super::StringMsgV),
-        #[prost(message, tag = "6")]
-        WebRequest(super::WebRequest),
-        #[prost(message, tag = "7")]
-        Pose(super::Pose),
-        #[prost(message, tag = "8")]
-        Doublev(super::DoubleV),
-        #[prost(message, tag = "9")]
-        PoseV(super::PoseV),
-        #[prost(message, tag = "10")]
-        Time(super::Time),
-        #[prost(message, tag = "11")]
-        Clock(super::Clock),
-        #[prost(message, tag = "12")]
-        WorldStats(super::WorldStatistics),
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct OccupancyGrid {
-    /// / \brief Optional header data. This should contain time of map validity
-    /// / and the coordinate frame ID.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Metadata for the map.
-    #[prost(message, optional, tag = "2")]
-    pub info: ::core::option::Option<occupancy_grid::MapMetaInfo>,
-    /// / \brief The map data, in row-major order, starting with (0,0).
-    /// / Occupancy probabilities are in the range \[0,100\].  Unknown is -1.
-    #[prost(bytes = "vec", tag = "3")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
-}
-/// Nested message and enum types in `OccupancyGrid`.
-pub mod occupancy_grid {
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct MapMetaInfo {
-        /// / \brief The map load time
-        #[prost(message, optional, tag = "1")]
-        pub map_load_time: ::core::option::Option<super::Time>,
-        /// / \brief The map resolution (meters/cell)
-        #[prost(double, tag = "2")]
-        pub resolution: f64,
-        /// / \brief The map width (cells)
-        #[prost(uint32, tag = "3")]
-        pub width: u32,
-        /// / \brief The map height (cells)
-        #[prost(uint32, tag = "4")]
-        pub height: u32,
-        /// / \brief  The origin of the map.  This is the real-world pose of the
-        /// / cell (0,0) in the map
-        #[prost(message, optional, tag = "5")]
-        pub origin: ::core::option::Option<super::Pose>,
-    }
-}
-/// / \brief (Copied from the ROS message): This message holds a collection of
-/// / N-dimensional points, which may contain additional information such as
-/// / normals, intensity, etc. The point data is stored as a binary blob, its
-/// / layout described by the contents of the "fields" array.
-/// /
-/// / The point cloud data may be organized 2d (image-like) or 1d
-/// / (unordered). Point clouds organized as 2d images may be produced by
-/// / camera depth sensors such as stereo or time-of-flight.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PointCloudPacked {
-    /// / \brief Optional header data. This should contain time of sensor data
-    /// / acquisition, and the coordinate frame ID (for 3D points).
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Information that describes the data contained in the `data` field.
-    #[prost(message, repeated, tag = "2")]
-    pub field: ::prost::alloc::vec::Vec<point_cloud_packed::Field>,
-    /// / \brief Height of a 2D structured point cloud, or 1 if the point cloud is
-    /// / unordered.
-    #[prost(uint32, tag = "3")]
-    pub height: u32,
-    /// / \brief Width of a 2D structured point cloud, or length of the point cloud
-    /// / if the point cloud is unordered.
-    #[prost(uint32, tag = "4")]
-    pub width: u32,
-    /// / \brief Is this data big endian?
-    #[prost(bool, tag = "5")]
-    pub is_bigendian: bool,
-    /// / \brief Length of a point in bytes.
-    #[prost(uint32, tag = "6")]
-    pub point_step: u32,
-    /// / \brief Length of row in bytes.
-    #[prost(uint32, tag = "7")]
-    pub row_step: u32,
-    /// / \brief The point data, size is (row_step * height);
-    #[prost(bytes = "vec", tag = "8")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
-    /// / \brief True if there are not invalid points.
-    #[prost(bool, tag = "9")]
-    pub is_dense: bool,
-}
-/// Nested message and enum types in `PointCloudPacked`.
-pub mod point_cloud_packed {
-    /// / \brief A field that describes the format of the data field.
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Field {
-        /// / \brief Name of the field.
-        #[prost(string, tag = "1")]
-        pub name: ::prost::alloc::string::String,
-        /// / \brief Offset from start of point struct
-        #[prost(uint32, tag = "2")]
-        pub offset: u32,
-        /// / \brief Datatype enumeration
-        #[prost(enumeration = "field::DataType", tag = "3")]
-        pub datatype: i32,
-        /// / \brief How many elements in the field
-        #[prost(uint32, tag = "4")]
-        pub count: u32,
-    }
-    /// Nested message and enum types in `Field`.
-    pub mod field {
-        /// Datatype for the point field.
-        #[derive(
-            Clone,
-            Copy,
-            Debug,
-            PartialEq,
-            Eq,
-            Hash,
-            PartialOrd,
-            Ord,
-            ::prost::Enumeration
-        )]
-        #[repr(i32)]
-        pub enum DataType {
-            Int8 = 0,
-            Uint8 = 1,
-            Int16 = 2,
-            Uint16 = 3,
-            Int32 = 4,
-            Uint32 = 5,
-            Float32 = 6,
-            Float64 = 7,
-        }
-        impl DataType {
-            /// String value of the enum field names used in the ProtoBuf definition.
-            ///
-            /// The values are not transformed in any way and thus are considered stable
-            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-            pub fn as_str_name(&self) -> &'static str {
-                match self {
-                    DataType::Int8 => "INT8",
-                    DataType::Uint8 => "UINT8",
-                    DataType::Int16 => "INT16",
-                    DataType::Uint16 => "UINT16",
-                    DataType::Int32 => "INT32",
-                    DataType::Uint32 => "UINT32",
-                    DataType::Float32 => "FLOAT32",
-                    DataType::Float64 => "FLOAT64",
-                }
-            }
-            /// Creates an enum from field names used in the ProtoBuf definition.
-            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-                match value {
-                    "INT8" => Some(Self::Int8),
-                    "UINT8" => Some(Self::Uint8),
-                    "INT16" => Some(Self::Int16),
-                    "UINT16" => Some(Self::Uint16),
-                    "INT32" => Some(Self::Int32),
-                    "UINT32" => Some(Self::Uint32),
-                    "FLOAT32" => Some(Self::Float32),
-                    "FLOAT64" => Some(Self::Float64),
-                    _ => None,
-                }
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Joy {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// Axis data from a joystick.
-    #[prost(float, repeated, tag = "2")]
-    pub axes: ::prost::alloc::vec::Vec<f32>,
-    /// Button data from a joystick
-    #[prost(int32, repeated, tag = "3")]
-    pub buttons: ::prost::alloc::vec::Vec<i32>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Duration {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Seconds
-    #[prost(int64, tag = "2")]
-    pub sec: i64,
-    /// / \brief Nanoseconds
-    #[prost(int32, tag = "3")]
-    pub nsec: i32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Contact {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag = "2")]
-    pub collision1: ::core::option::Option<Entity>,
+    pub frame: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
-    pub collision2: ::core::option::Option<Entity>,
-    #[prost(message, repeated, tag = "4")]
-    pub position: ::prost::alloc::vec::Vec<Vector3d>,
-    #[prost(message, repeated, tag = "5")]
-    pub normal: ::prost::alloc::vec::Vec<Vector3d>,
-    #[prost(double, repeated, tag = "6")]
-    pub depth: ::prost::alloc::vec::Vec<f64>,
-    #[prost(message, repeated, tag = "7")]
-    pub wrench: ::prost::alloc::vec::Vec<JointWrench>,
-    #[prost(message, optional, tag = "8")]
-    pub world: ::core::option::Option<Entity>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AnnotatedOriented3DBoxV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief vector of 3d annotated oreinted boxes
-    #[prost(message, repeated, tag = "2")]
-    pub annotated_box: ::prost::alloc::vec::Vec<AnnotatedOriented3DBox>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PluginV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Plugin messages.
-    #[prost(message, repeated, tag = "2")]
-    pub plugins: ::prost::alloc::vec::Vec<Plugin>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UndoRedo {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief True to undo, false to redo.
-    #[prost(bool, tag = "2")]
-    pub undo: bool,
-    /// / \brief Unique id of the user command. If this is provided, all commands
-    /// / leading to that will be undone / redone.
-    #[prost(uint32, tag = "3")]
-    pub id: u32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Tactile {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, repeated, tag = "2")]
-    pub collision_name: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(uint32, repeated, tag = "3")]
-    pub collision_id: ::prost::alloc::vec::Vec<u32>,
-    #[prost(double, repeated, tag = "4")]
-    pub pressure: ::prost::alloc::vec::Vec<f64>,
-}
-/// / \brief Fluid pressure data.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FluidPressure {
-    /// Other Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Pressure reading in Pascals
-    #[prost(double, tag = "2")]
-    pub pressure: f64,
-    /// / \brief Pressure variance. 0 is interpreted as variance unknown.
-    #[prost(double, tag = "3")]
-    pub variance: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AxisAligned2DBox {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Minimum corner of the axis aligned bound box in image coord.
-    #[prost(message, optional, tag = "2")]
-    pub min_corner: ::core::option::Option<Vector2d>,
-    /// / \brief Maximum corner of the axis aligned bound box in the image coord.
-    #[prost(message, optional, tag = "3")]
-    pub max_corner: ::core::option::Option<Vector2d>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AnnotatedAxisAligned2DBox {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Axis aligned 2d bounding box
-    #[prost(message, optional, tag = "2")]
-    pub r#box: ::core::option::Option<AxisAligned2DBox>,
-    /// / \brief Label (class) of the box's object
-    #[prost(uint32, tag = "3")]
-    pub label: u32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Bytes {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Bytes data
-    #[prost(bytes = "vec", tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct VideoRecord {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief True to start video recording
-    #[prost(bool, tag = "2")]
-    pub start: bool,
-    /// / \brief True to stop video recording
-    #[prost(bool, tag = "3")]
-    pub stop: bool,
-    /// / \brief Video encoding format, e.g. "mp4", "ogv"
-    #[prost(string, tag = "4")]
-    pub format: ::prost::alloc::string::String,
-    /// / \brief filename of the recorded video
-    #[prost(string, tag = "5")]
-    pub save_filename: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Diagnostics {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub time: ::prost::alloc::vec::Vec<diagnostics::DiagTime>,
-    #[prost(message, optional, tag = "3")]
-    pub real_time: ::core::option::Option<Time>,
-    #[prost(message, optional, tag = "4")]
-    pub sim_time: ::core::option::Option<Time>,
-    #[prost(double, tag = "5")]
-    pub real_time_factor: f64,
-}
-/// Nested message and enum types in `Diagnostics`.
-pub mod diagnostics {
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct DiagTime {
-        #[prost(string, tag = "1")]
-        pub name: ::prost::alloc::string::String,
-        #[prost(message, optional, tag = "2")]
-        pub elapsed: ::core::option::Option<super::Time>,
-        #[prost(message, optional, tag = "3")]
-        pub wall: ::core::option::Option<super::Time>,
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Subscribe {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub topic: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub host: ::prost::alloc::string::String,
-    #[prost(uint32, tag = "4")]
-    pub port: u32,
-    #[prost(string, tag = "5")]
-    pub msg_type: ::prost::alloc::string::String,
-    #[prost(bool, tag = "6")]
-    pub latching: bool,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Any {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Type of value that is contained in this message.
-    #[prost(enumeration = "any::ValueType", tag = "2")]
-    pub r#type: i32,
-    #[prost(oneof = "any::Value", tags = "3, 4, 5, 6, 7, 8, 9, 10, 11")]
-    pub value: ::core::option::Option<any::Value>,
-}
-/// Nested message and enum types in `Any`.
-pub mod any {
-    /// / \brief The type of data the message contains.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum ValueType {
-        /// / \brief Indicates that the message is empty
-        None = 0,
-        /// / \brief Indicates that the message contains a double
-        Double = 1,
-        /// / \brief Indicates that the message contains an int32
-        Int32 = 2,
-        /// / \brief Indicates that the message contains a string
-        String = 3,
-        /// / \brief Indicates that the message contains a Boolean
-        Boolean = 4,
-        /// / \brief Indicates that the message contains a Vector3d
-        Vector3d = 5,
-        /// / \brief Indicates that the message contains a Color
-        Color = 6,
-        /// / \brief Indicates that the message contains a Pose
-        Pose3d = 7,
-        /// / \brief Indicates that the message contains a Quaternion
-        Quaterniond = 8,
-        /// / \brief Indicates that the message contains a Time
-        Time = 9,
-    }
-    impl ValueType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                ValueType::None => "NONE",
-                ValueType::Double => "DOUBLE",
-                ValueType::Int32 => "INT32",
-                ValueType::String => "STRING",
-                ValueType::Boolean => "BOOLEAN",
-                ValueType::Vector3d => "VECTOR3D",
-                ValueType::Color => "COLOR",
-                ValueType::Pose3d => "POSE3D",
-                ValueType::Quaterniond => "QUATERNIOND",
-                ValueType::Time => "TIME",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "NONE" => Some(Self::None),
-                "DOUBLE" => Some(Self::Double),
-                "INT32" => Some(Self::Int32),
-                "STRING" => Some(Self::String),
-                "BOOLEAN" => Some(Self::Boolean),
-                "VECTOR3D" => Some(Self::Vector3d),
-                "COLOR" => Some(Self::Color),
-                "POSE3D" => Some(Self::Pose3d),
-                "QUATERNIOND" => Some(Self::Quaterniond),
-                "TIME" => Some(Self::Time),
-                _ => None,
-            }
-        }
-    }
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Value {
-        /// / \brief A double value
-        #[prost(double, tag = "3")]
-        DoubleValue(f64),
-        /// / \brief An int32 value
-        #[prost(int32, tag = "4")]
-        IntValue(i32),
-        /// / \brief A string value
-        #[prost(string, tag = "5")]
-        StringValue(::prost::alloc::string::String),
-        /// / \brief A boolean value
-        #[prost(bool, tag = "6")]
-        BoolValue(bool),
-        /// / \brief A Vector3d value
-        #[prost(message, tag = "7")]
-        Vector3dValue(super::Vector3d),
-        /// / \brief A Color value
-        #[prost(message, tag = "8")]
-        ColorValue(super::Color),
-        /// / \brief A Pose value
-        #[prost(message, tag = "9")]
-        Pose3dValue(super::Pose),
-        /// / \brief A Quaternion value
-        #[prost(message, tag = "10")]
-        QuaternionValue(super::Quaternion),
-        /// / \brief A Time value
-        #[prost(message, tag = "11")]
-        TimeValue(super::Time),
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Physics {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(enumeration = "physics::Type", tag = "2")]
-    pub r#type: i32,
-    #[prost(string, tag = "3")]
-    pub solver_type: ::prost::alloc::string::String,
+    pub world_pose: ::core::option::Option<Pose>,
     #[prost(double, tag = "4")]
-    pub min_step_size: f64,
-    #[prost(int32, tag = "5")]
-    pub precon_iters: i32,
-    #[prost(int32, tag = "6")]
-    pub iters: i32,
+    pub angle_min: f64,
+    #[prost(double, tag = "5")]
+    pub angle_max: f64,
+    #[prost(double, tag = "6")]
+    pub angle_step: f64,
     #[prost(double, tag = "7")]
-    pub sor: f64,
+    pub range_min: f64,
     #[prost(double, tag = "8")]
-    pub cfm: f64,
-    #[prost(double, tag = "9")]
-    pub erp: f64,
+    pub range_max: f64,
+    #[prost(uint32, tag = "9")]
+    pub count: u32,
     #[prost(double, tag = "10")]
-    pub contact_max_correcting_vel: f64,
+    pub vertical_angle_min: f64,
     #[prost(double, tag = "11")]
-    pub contact_surface_layer: f64,
-    #[prost(message, optional, tag = "12")]
-    pub gravity: ::core::option::Option<Vector3d>,
-    #[prost(bool, tag = "13")]
-    pub enable_physics: bool,
-    #[prost(double, tag = "14")]
-    pub real_time_factor: f64,
-    #[prost(double, tag = "15")]
-    pub real_time_update_rate: f64,
-    #[prost(double, tag = "16")]
-    pub max_step_size: f64,
-    /// The name of this physics profile (not to be confused with type)
-    #[prost(string, tag = "17")]
-    pub profile_name: ::prost::alloc::string::String,
-    /// / \brief Magnetic field
-    #[prost(message, optional, tag = "18")]
-    pub magnetic_field: ::core::option::Option<Vector3d>,
+    pub vertical_angle_max: f64,
+    #[prost(double, tag = "12")]
+    pub vertical_angle_step: f64,
+    #[prost(uint32, tag = "13")]
+    pub vertical_count: u32,
+    #[prost(double, repeated, tag = "14")]
+    pub ranges: ::prost::alloc::vec::Vec<f64>,
+    #[prost(double, repeated, tag = "15")]
+    pub intensities: ::prost::alloc::vec::Vec<f64>,
 }
-/// Nested message and enum types in `Physics`.
-pub mod physics {
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Parameter {
+    /// / \brief Parameter name.
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Serialized parameter value.
+    #[prost(message, optional, tag = "2")]
+    pub value: ::core::option::Option<::prost_types::Any>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DvlTrackingTarget {
+    /// / \brief Type of target used for tracking.
+    #[prost(enumeration = "dvl_tracking_target::TargetType", tag = "1")]
+    pub r#type: i32,
+    /// / \brief Target range (or distance), in meters
+    #[prost(message, optional, tag = "2")]
+    pub range: ::core::option::Option<DvlRangeEstimate>,
+    /// / \brief Target position estimate, in meters.
+    #[prost(message, optional, tag = "3")]
+    pub position: ::core::option::Option<DvlKinematicEstimate>,
+}
+/// Nested message and enum types in `DVLTrackingTarget`.
+pub mod dvl_tracking_target {
+    /// / \brief Target types
     #[derive(
         Clone,
         Copy,
@@ -5578,73 +5446,36 @@ pub mod physics {
         ::prost::Enumeration
     )]
     #[repr(i32)]
-    pub enum Type {
-        Ode = 0,
-        Bullet = 1,
-        Simbody = 2,
-        Dart = 3,
+    pub enum TargetType {
+        /// / \brief Unspecific target type.
+        DvlTargetUnspecified = 0,
+        /// / \brief Bottom ground (ie. solid) target.
+        DvlTargetBottom = 1,
+        /// / \brief Water mass layer (ie. fluid) target.
+        DvlTargetWaterMass = 2,
     }
-    impl Type {
+    impl TargetType {
         /// String value of the enum field names used in the ProtoBuf definition.
         ///
         /// The values are not transformed in any way and thus are considered stable
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                Type::Ode => "ODE",
-                Type::Bullet => "BULLET",
-                Type::Simbody => "SIMBODY",
-                Type::Dart => "DART",
+                TargetType::DvlTargetUnspecified => "DVL_TARGET_UNSPECIFIED",
+                TargetType::DvlTargetBottom => "DVL_TARGET_BOTTOM",
+                TargetType::DvlTargetWaterMass => "DVL_TARGET_WATER_MASS",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
         pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
             match value {
-                "ODE" => Some(Self::Ode),
-                "BULLET" => Some(Self::Bullet),
-                "SIMBODY" => Some(Self::Simbody),
-                "DART" => Some(Self::Dart),
+                "DVL_TARGET_UNSPECIFIED" => Some(Self::DvlTargetUnspecified),
+                "DVL_TARGET_BOTTOM" => Some(Self::DvlTargetBottom),
+                "DVL_TARGET_WATER_MASS" => Some(Self::DvlTargetWaterMass),
                 _ => None,
             }
         }
     }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Publish {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub topic: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub msg_type: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub host: ::prost::alloc::string::String,
-    #[prost(uint32, tag = "5")]
-    pub port: u32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Publishers {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub publisher: ::prost::alloc::vec::Vec<Publish>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UInt32V {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Vector of int data
-    #[prost(uint32, repeated, tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<u32>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -5712,72 +5543,655 @@ pub mod fog {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Sky {
+pub struct JointWrench {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    #[prost(double, tag = "2")]
-    pub time: f64,
-    #[prost(double, tag = "3")]
-    pub sunrise: f64,
-    #[prost(double, tag = "4")]
-    pub sunset: f64,
-    #[prost(double, tag = "5")]
-    pub wind_speed: f64,
-    #[prost(double, tag = "6")]
-    pub wind_direction: f64,
+    #[prost(string, tag = "2")]
+    pub body_1_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "3")]
+    pub body_1_id: u32,
+    #[prost(string, tag = "4")]
+    pub body_2_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "5")]
+    pub body_2_id: u32,
+    #[prost(message, optional, tag = "6")]
+    pub body_1_wrench: ::core::option::Option<Wrench>,
     #[prost(message, optional, tag = "7")]
-    pub cloud_ambient: ::core::option::Option<Color>,
-    #[prost(double, tag = "8")]
-    pub humidity: f64,
-    #[prost(double, tag = "9")]
-    pub mean_cloud_size: f64,
+    pub body_2_wrench: ::core::option::Option<Wrench>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Scene {
+pub struct Contact {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag = "2")]
+    pub collision1: ::core::option::Option<Entity>,
+    #[prost(message, optional, tag = "3")]
+    pub collision2: ::core::option::Option<Entity>,
+    #[prost(message, repeated, tag = "4")]
+    pub position: ::prost::alloc::vec::Vec<Vector3d>,
+    #[prost(message, repeated, tag = "5")]
+    pub normal: ::prost::alloc::vec::Vec<Vector3d>,
+    #[prost(double, repeated, tag = "6")]
+    pub depth: ::prost::alloc::vec::Vec<f64>,
+    #[prost(message, repeated, tag = "7")]
+    pub wrench: ::prost::alloc::vec::Vec<JointWrench>,
+    #[prost(message, optional, tag = "8")]
+    pub world: ::core::option::Option<Entity>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Contacts {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, repeated, tag = "2")]
+    pub contact: ::prost::alloc::vec::Vec<Contact>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ModelV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, repeated, tag = "2")]
+    pub models: ::prost::alloc::vec::Vec<Model>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RestPost {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief ID of this request message
+    #[prost(uint32, tag = "2")]
+    pub id: u32,
+    /// / \brief Route to post to.
+    #[prost(string, tag = "3")]
+    pub route: ::prost::alloc::string::String,
+    /// / \brief Data to post in JSON format
+    #[prost(string, tag = "4")]
+    pub json: ::prost::alloc::string::String,
+}
+/// / \brief Actuator commands.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Actuators {
+    /// Optional header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Position of the actuators in \[rad\] for angular actuators
+    /// / and \[m\] for linear actuators.
+    #[prost(double, repeated, tag = "2")]
+    pub position: ::prost::alloc::vec::Vec<f64>,
+    /// / \brief Velocities of the actuators in \[rad/s\] for angular actuators
+    /// / and \[m/s\] for linear actuators.
+    #[prost(double, repeated, tag = "3")]
+    pub velocity: ::prost::alloc::vec::Vec<f64>,
+    /// / \brief Everything that does not fit the above,
+    /// / normalized between \[-1 ... 1\].
+    #[prost(double, repeated, tag = "4")]
+    pub normalized: ::prost::alloc::vec::Vec<f64>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Joystick {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// Translation measurements along the x,y,z
+    /// axes. These values should be normalized to
+    /// the range -1...1
+    #[prost(message, optional, tag = "2")]
+    pub translation: ::core::option::Option<Vector3d>,
+    /// Rotation measurements about the x,y,z
+    /// axes. These values should be normalized to
+    /// the range -1...1
+    #[prost(message, optional, tag = "3")]
+    pub rotation: ::core::option::Option<Vector3d>,
+    /// Button measurements
+    #[prost(int32, repeated, tag = "4")]
+    pub buttons: ::prost::alloc::vec::Vec<i32>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EntityPluginV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Entity the plugins belong to
+    #[prost(message, optional, tag = "2")]
+    pub entity: ::core::option::Option<Entity>,
+    /// / \brief Plugin messages.
+    #[prost(message, repeated, tag = "3")]
+    pub plugins: ::prost::alloc::vec::Vec<Plugin>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Joy {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// Axis data from a joystick.
+    #[prost(float, repeated, tag = "2")]
+    pub axes: ::prost::alloc::vec::Vec<f32>,
+    /// Button data from a joystick
+    #[prost(int32, repeated, tag = "3")]
+    pub buttons: ::prost::alloc::vec::Vec<i32>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Tactile {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, repeated, tag = "2")]
+    pub collision_name: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(uint32, repeated, tag = "3")]
+    pub collision_id: ::prost::alloc::vec::Vec<u32>,
+    #[prost(double, repeated, tag = "4")]
+    pub pressure: ::prost::alloc::vec::Vec<f64>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Response {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(int32, tag = "2")]
+    pub id: i32,
+    #[prost(string, tag = "3")]
+    pub request: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub response: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub r#type: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "6")]
+    pub serialized_data: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Empty {
+    /// / \brief Unused field.
+    #[prost(bool, tag = "1")]
+    pub unused: bool,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UInt64 {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Integer data
+    #[prost(uint64, tag = "2")]
+    pub data: u64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Shadows {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(enumeration = "shadows::ShadowType", tag = "2")]
+    pub r#type: i32,
+    #[prost(message, optional, tag = "3")]
+    pub color: ::core::option::Option<Color>,
+}
+/// Nested message and enum types in `Shadows`.
+pub mod shadows {
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum ShadowType {
+        StencilAdditive = 0,
+        StencilModulative = 1,
+        TextureAdditive = 2,
+        TextureModulative = 3,
+    }
+    impl ShadowType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                ShadowType::StencilAdditive => "STENCIL_ADDITIVE",
+                ShadowType::StencilModulative => "STENCIL_MODULATIVE",
+                ShadowType::TextureAdditive => "TEXTURE_ADDITIVE",
+                ShadowType::TextureModulative => "TEXTURE_MODULATIVE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "STENCIL_ADDITIVE" => Some(Self::StencilAdditive),
+                "STENCIL_MODULATIVE" => Some(Self::StencilModulative),
+                "TEXTURE_ADDITIVE" => Some(Self::TextureAdditive),
+                "TEXTURE_MODULATIVE" => Some(Self::TextureModulative),
+                _ => None,
+            }
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParticleEmitterV {
+    /// / \brief Optional header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief List of particle emitters.
+    #[prost(message, repeated, tag = "2")]
+    pub particle_emitter: ::prost::alloc::vec::Vec<ParticleEmitter>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParameterValue {
+    /// / \brief Serialized protobuf message.
+    #[prost(message, optional, tag = "1")]
+    pub data: ::core::option::Option<::prost_types::Any>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Subscribe {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub topic: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub host: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "4")]
+    pub port: u32,
+    #[prost(string, tag = "5")]
+    pub msg_type: ::prost::alloc::string::String,
+    #[prost(bool, tag = "6")]
+    pub latching: bool,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LogicalCameraImage {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Pose of the logical camera.
+    #[prost(message, optional, tag = "2")]
+    pub pose: ::core::option::Option<Pose>,
+    /// / \brief All the models seen by the LogicalCamera
+    #[prost(message, repeated, tag = "3")]
+    pub model: ::prost::alloc::vec::Vec<logical_camera_image::Model>,
+}
+/// Nested message and enum types in `LogicalCameraImage`.
+pub mod logical_camera_image {
+    /// / \brief Information about a model that is reported by a
+    /// / LogicalCameraSensor
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Model {
+        /// / \brief Name of the detected model
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        /// / \brief Pose of the detected model. The pose is relative to the
+        /// / logical camera's pose.
+        #[prost(message, optional, tag = "2")]
+        pub pose: ::core::option::Option<super::Pose>,
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TwistWithCovariance {
+    /// / \brief Twist message.
+    #[prost(message, optional, tag = "1")]
+    pub twist: ::core::option::Option<Twist>,
+    /// / \brief Row-major representation of the 6x6 covariance matrix
+    /// / The orientation parameters use a fixed-axis representation.
+    /// / In order, the parameters are:
+    /// / (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
+    #[prost(message, optional, tag = "2")]
+    pub covariance: ::core::option::Option<FloatV>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Statistic {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief The data type.
+    #[prost(enumeration = "statistic::DataType", tag = "2")]
+    pub r#type: i32,
+    /// / \brief Name associated with the statistic.
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief The statistic's value.
+    #[prost(double, tag = "4")]
+    pub value: f64,
+}
+/// Nested message and enum types in `Statistic`.
+pub mod statistic {
+    /// / \brief The type of data represented by this statistic.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum DataType {
+        /// / \brief The data type has not been initialized.
+        Uninitialized = 0,
+        /// / \brief An average value is represented.
+        Average = 1,
+        /// / \brief A minimum value is represented.
+        Minimum = 2,
+        /// / \brief A maximum value is represented.
+        Maximum = 3,
+        /// / \brief A variance is represented.
+        Variance = 4,
+        /// / \brief A standard deviation is represented.
+        Stddev = 5,
+        /// / \brief A sample count is represented.
+        SampleCount = 6,
+        /// / \brief A root mean square value is represented.
+        RootMeanSquare = 7,
+        /// / \brief A maximum absolute value is represented.
+        MaxAbsValue = 8,
+    }
+    impl DataType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                DataType::Uninitialized => "UNINITIALIZED",
+                DataType::Average => "AVERAGE",
+                DataType::Minimum => "MINIMUM",
+                DataType::Maximum => "MAXIMUM",
+                DataType::Variance => "VARIANCE",
+                DataType::Stddev => "STDDEV",
+                DataType::SampleCount => "SAMPLE_COUNT",
+                DataType::RootMeanSquare => "ROOT_MEAN_SQUARE",
+                DataType::MaxAbsValue => "MAX_ABS_VALUE",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNINITIALIZED" => Some(Self::Uninitialized),
+                "AVERAGE" => Some(Self::Average),
+                "MINIMUM" => Some(Self::Minimum),
+                "MAXIMUM" => Some(Self::Maximum),
+                "VARIANCE" => Some(Self::Variance),
+                "STDDEV" => Some(Self::Stddev),
+                "SAMPLE_COUNT" => Some(Self::SampleCount),
+                "ROOT_MEAN_SQUARE" => Some(Self::RootMeanSquare),
+                "MAX_ABS_VALUE" => Some(Self::MaxAbsValue),
+                _ => None,
+            }
+        }
+    }
+}
+/// / \brief A named group of statistics.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StatisticsGroup {
+    /// / \brief Optional header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Name of the group.
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    /// / \brief Statistics the belong to this group.
+    #[prost(message, repeated, tag = "3")]
+    pub statistics: ::prost::alloc::vec::Vec<Statistic>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Metric {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Unit of measurement such as seconds, meters, liters.
+    #[prost(string, tag = "2")]
+    pub unit: ::prost::alloc::string::String,
+    /// / \brief Zero or more named groups of statistics. A statistic group is
+    /// / used to bundle data into a logical set with an associated name.
+    #[prost(message, repeated, tag = "3")]
+    pub statistics_groups: ::prost::alloc::vec::Vec<StatisticsGroup>,
+    /// / \brief Zero or more statistics.
+    #[prost(message, repeated, tag = "4")]
+    pub statistics: ::prost::alloc::vec::Vec<Statistic>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LogPlaybackControl {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Pause/play the log file.
+    #[prost(bool, tag = "2")]
+    pub pause: bool,
+    /// / \brief Make a relative jump. The value indicates the number of
+    /// /        iterations that will be executed at once. If a negative
+    /// /        value is specified, the playback will jump backwards.
+    #[prost(sint32, tag = "3")]
+    pub multi_step: i32,
+    /// / \brief Jump to the beginning of the log file.
+    #[prost(bool, tag = "4")]
+    pub rewind: bool,
+    /// / \brief Jump to the end of the log file.
+    #[prost(bool, tag = "5")]
+    pub forward: bool,
+    /// / \brief Jump to a specific simulation time in the log file. The
+    /// /        playback service will load the frame with the closest
+    /// /        simulation time bigger than the "seek" value.
+    #[prost(message, optional, tag = "6")]
+    pub seek: ::core::option::Option<Time>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OccupancyGrid {
+    /// / \brief Optional header data. This should contain time of map validity
+    /// / and the coordinate frame ID.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Metadata for the map.
+    #[prost(message, optional, tag = "2")]
+    pub info: ::core::option::Option<occupancy_grid::MapMetaInfo>,
+    /// / \brief The map data, in row-major order, starting with (0,0).
+    /// / Occupancy probabilities are in the range \[0,100\].  Unknown is -1.
+    #[prost(bytes = "vec", tag = "3")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+/// Nested message and enum types in `OccupancyGrid`.
+pub mod occupancy_grid {
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct MapMetaInfo {
+        /// / \brief The map load time
+        #[prost(message, optional, tag = "1")]
+        pub map_load_time: ::core::option::Option<super::Time>,
+        /// / \brief The map resolution (meters/cell)
+        #[prost(double, tag = "2")]
+        pub resolution: f64,
+        /// / \brief The map width (cells)
+        #[prost(uint32, tag = "3")]
+        pub width: u32,
+        /// / \brief The map height (cells)
+        #[prost(uint32, tag = "4")]
+        pub height: u32,
+        /// / \brief  The origin of the map.  This is the real-world pose of the
+        /// / cell (0,0) in the map
+        #[prost(message, optional, tag = "5")]
+        pub origin: ::core::option::Option<super::Pose>,
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PointCloud {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, repeated, tag = "2")]
+    pub points: ::prost::alloc::vec::Vec<Vector3d>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Gps {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub link_name: ::prost::alloc::string::String,
+    #[prost(double, tag = "3")]
+    pub latitude_deg: f64,
+    #[prost(double, tag = "4")]
+    pub longitude_deg: f64,
+    #[prost(double, tag = "5")]
+    pub altitude: f64,
+    #[prost(double, tag = "6")]
+    pub velocity_east: f64,
+    #[prost(double, tag = "7")]
+    pub velocity_north: f64,
+    #[prost(double, tag = "8")]
+    pub velocity_up: f64,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DvlVelocityTracking {
+    /// / \brief Message header.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Type of DVL.
+    #[prost(enumeration = "dvl_velocity_tracking::DvlType", tag = "2")]
+    pub r#type: i32,
+    /// / \brief Locked on target.
+    #[prost(message, optional, tag = "3")]
+    pub target: ::core::option::Option<DvlTrackingTarget>,
+    /// / \brief Estimated velocity of either target or sensor
+    /// / w.r.t. the specified frame, in meters per second.
+    #[prost(message, optional, tag = "4")]
+    pub velocity: ::core::option::Option<DvlKinematicEstimate>,
+    /// / \brief Tracking beams' state.
+    #[prost(message, repeated, tag = "5")]
+    pub beams: ::prost::alloc::vec::Vec<DvlBeamState>,
+    /// / \brief Vendor-specific status (e.g. bitmask, error code).
+    #[prost(int32, tag = "6")]
+    pub status: i32,
+}
+/// Nested message and enum types in `DVLVelocityTracking`.
+pub mod dvl_velocity_tracking {
+    /// / \brief DVL types.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum DvlType {
+        /// / \brief Unspecific DVL type.
+        Unspecified = 0,
+        /// / \brief Piston DVLs.
+        Piston = 1,
+        /// / \brief Phased array DVLs.
+        PhasedArray = 2,
+    }
+    impl DvlType {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                DvlType::Unspecified => "DVL_TYPE_UNSPECIFIED",
+                DvlType::Piston => "DVL_TYPE_PISTON",
+                DvlType::PhasedArray => "DVL_TYPE_PHASED_ARRAY",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "DVL_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+                "DVL_TYPE_PISTON" => Some(Self::Piston),
+                "DVL_TYPE_PHASED_ARRAY" => Some(Self::PhasedArray),
+                _ => None,
+            }
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Int32 {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Integer data
+    #[prost(int32, tag = "2")]
+    pub data: i32,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LinkData {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
     #[prost(string, tag = "2")]
     pub name: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
-    pub ambient: ::core::option::Option<Color>,
-    #[prost(message, optional, tag = "4")]
-    pub background: ::core::option::Option<Color>,
-    #[prost(message, optional, tag = "5")]
-    pub sky: ::core::option::Option<Sky>,
-    #[prost(bool, tag = "6")]
-    pub shadows: bool,
-    #[prost(message, optional, tag = "7")]
-    pub fog: ::core::option::Option<Fog>,
-    #[prost(bool, tag = "8")]
-    pub grid: bool,
-    #[prost(message, repeated, tag = "9")]
-    pub model: ::prost::alloc::vec::Vec<Model>,
-    #[prost(message, repeated, tag = "10")]
-    pub light: ::prost::alloc::vec::Vec<Light>,
-    #[prost(message, repeated, tag = "11")]
-    pub joint: ::prost::alloc::vec::Vec<Joint>,
-    /// / \brief Show/hide world origin indicator.
-    #[prost(bool, tag = "12")]
-    pub origin_visual: bool,
-    /// / \brief Shadow caster material script.
-    #[prost(message, optional, tag = "13")]
-    pub shadow_caster_material_script: ::core::option::Option<material::Script>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Wind {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag = "2")]
     pub linear_velocity: ::core::option::Option<Vector3d>,
-    #[prost(bool, tag = "3")]
-    pub enable_wind: bool,
+    #[prost(message, optional, tag = "4")]
+    pub angular_velocity: ::core::option::Option<Vector3d>,
 }
 /// / \brief Meta information about a camera and the images produced by the
 /// / camera. This data is typically published alongside a camera image stream
@@ -5955,271 +6369,580 @@ pub mod camera_info {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct JointTrajectoryPoint {
-    /// / \brief Position of each joint relative to their "0" position. Units are
-    /// / dependent on the joint type, where radians are used for revolute or
-    /// / continuous joints, and meters for prismatic joints
-    #[prost(double, repeated, tag = "1")]
-    pub positions: ::prost::alloc::vec::Vec<f64>,
-    /// / \brief Rate of change in position of each joint. Units are dependent on
-    /// / the joint type, where radians/second are used for revolute or continuous
-    /// / joints, and meters/second for prismatic joints
-    #[prost(double, repeated, tag = "2")]
-    pub velocities: ::prost::alloc::vec::Vec<f64>,
-    /// / \brief Rate of change in velocity of each joint. Units are dependent on
-    /// / the joint type, where radians/second^2 are used for revolute or
-    /// / continuous joints, and meters/second^2 for prismatic joints
-    #[prost(double, repeated, tag = "3")]
-    pub accelerations: ::prost::alloc::vec::Vec<f64>,
-    /// / \brief Torque or force applied at each joint. Units are dependent on the
-    /// / joint type, where newton-meters are used for revolute or continuous
-    /// / joints (torque), and newtons for prismatic joints (force)
-    #[prost(double, repeated, tag = "4")]
-    pub effort: ::prost::alloc::vec::Vec<f64>,
-    /// / \brief Desired time from the beginning of trajectory execution until
-    /// / this trajectory point should be reached. This value must be strictly
-    /// / increasing for consecutive points
+pub struct Discovery {
+    /// / \brief Optional header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Version of the discovery protocol.
+    #[prost(uint32, tag = "2")]
+    pub version: u32,
+    /// / \brief Process UUID.
+    #[prost(string, tag = "3")]
+    pub process_uuid: ::prost::alloc::string::String,
+    /// / \brief The type of this message.
+    #[prost(enumeration = "discovery::Type", tag = "4")]
+    pub r#type: i32,
+    /// / \brief Optional flags.
     #[prost(message, optional, tag = "5")]
-    pub time_from_start: ::core::option::Option<Duration>,
+    pub flags: ::core::option::Option<discovery::Flags>,
+    /// / \brief Optional subscriber or publisher information.
+    #[prost(oneof = "discovery::DiscContents", tags = "6, 7")]
+    pub disc_contents: ::core::option::Option<discovery::DiscContents>,
 }
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct JointTrajectory {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Ordered list of joint names that must be active during execution
-    /// / of this trajectory. The order shall correspond to the values in each
-    /// / trajectory point
-    #[prost(string, repeated, tag = "2")]
-    pub joint_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// / \brief Ordered list of time-parameterised trajectory points, which can
-    /// / describe positions, velocities, accelerations and/or effort for all
-    /// / active joints at each point in time. All points must be ordered
-    /// / according to their time from start, which must be strictly increasing
-    #[prost(message, repeated, tag = "3")]
-    pub points: ::prost::alloc::vec::Vec<JointTrajectoryPoint>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Gps {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub link_name: ::prost::alloc::string::String,
-    #[prost(double, tag = "3")]
-    pub latitude_deg: f64,
-    #[prost(double, tag = "4")]
-    pub longitude_deg: f64,
-    #[prost(double, tag = "5")]
-    pub altitude: f64,
-    #[prost(double, tag = "6")]
-    pub velocity_east: f64,
-    #[prost(double, tag = "7")]
-    pub velocity_north: f64,
-    #[prost(double, tag = "8")]
-    pub velocity_up: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SensorV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Sensor messages.
-    #[prost(message, repeated, tag = "2")]
-    pub sensors: ::prost::alloc::vec::Vec<Sensor>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Odometry {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Estimated pose.
-    #[prost(message, optional, tag = "2")]
-    pub pose: ::core::option::Option<Pose>,
-    /// / \brief Estimated velocity.
-    #[prost(message, optional, tag = "3")]
-    pub twist: ::core::option::Option<Twist>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Test {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-}
-/// / \brief Actuator commands.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Actuators {
-    /// Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Position of the actuators in \[rad\] for angular actuators
-    /// / and \[m\] for linear actuators.
-    #[prost(double, repeated, tag = "2")]
-    pub position: ::prost::alloc::vec::Vec<f64>,
-    /// / \brief Velocities of the actuators in \[rad/s\] for angular actuators
-    /// / and \[m/s\] for linear actuators.
-    #[prost(double, repeated, tag = "3")]
-    pub velocity: ::prost::alloc::vec::Vec<f64>,
-    /// / \brief Everything that does not fit the above,
-    /// / normalized between \[-1 ... 1\].
-    #[prost(double, repeated, tag = "4")]
-    pub normalized: ::prost::alloc::vec::Vec<f64>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Parameter {
-    /// / \brief Parameter name.
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Serialized parameter value.
-    #[prost(message, optional, tag = "2")]
-    pub value: ::core::option::Option<::prost_types::Any>,
-}
-/// / \brief Altimeter sensor data
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Altimeter {
-    /// Other Optional header data
-    ///
-    /// / Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Vertical position data, in meters.
-    #[prost(double, tag = "2")]
-    pub vertical_position: f64,
-    /// / \brief Vertical velocity data, in meters/second.
-    #[prost(double, tag = "3")]
-    pub vertical_velocity: f64,
-    /// / \brief Vertical reference.
-    #[prost(double, tag = "4")]
-    pub vertical_reference: f64,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParameterName {
-    /// / \brief Parameter name.
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Hydra {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// Info for the right paddle
-    #[prost(message, optional, tag = "2")]
-    pub right: ::core::option::Option<hydra::Paddle>,
-    /// Info for the left paddle
-    #[prost(message, optional, tag = "3")]
-    pub left: ::core::option::Option<hydra::Paddle>,
-}
-/// Nested message and enum types in `Hydra`.
-pub mod hydra {
+/// Nested message and enum types in `Discovery`.
+pub mod discovery {
+    /// / \brief Discovery flags.
     #[derive(::rgz_derive::GzMessage)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Paddle {
-        /// Pose of the paddle
-        #[prost(message, optional, tag = "1")]
-        pub pose: ::core::option::Option<super::Pose>,
-        /// The button labeled LB
+    pub struct Flags {
+        /// / \brief Flag set when a discovery message is relayed.
+        #[prost(bool, tag = "1")]
+        pub relay: bool,
+        /// / \brief Flag set when we want to avoid to relay a discovery message.
+        /// / This is used to avoid loops.
         #[prost(bool, tag = "2")]
-        pub button_bumper: bool,
-        /// Button 1
-        #[prost(bool, tag = "3")]
-        pub button_1: bool,
-        /// Button 2
-        #[prost(bool, tag = "4")]
-        pub button_2: bool,
-        /// Button 3
-        #[prost(bool, tag = "5")]
-        pub button_3: bool,
-        /// Button 4
-        #[prost(bool, tag = "6")]
-        pub button_4: bool,
-        /// Button that is activated by pressing down on the joystick.
-        #[prost(bool, tag = "7")]
-        pub button_joy: bool,
-        /// The button located between button 1 and 2.
-        #[prost(bool, tag = "8")]
-        pub button_center: bool,
-        /// Range(-1, 1) where -1 == back, and +1 == forward.
-        #[prost(double, tag = "9")]
-        pub joy_x: f64,
-        /// Range(-1, 1) where -1 == left, and +1 == right.
-        #[prost(double, tag = "10")]
-        pub joy_y: f64,
-        /// Range(0, 1) where 0 is no press, and 1 is full press.
-        #[prost(double, tag = "11")]
-        pub trigger: f64,
+        pub no_relay: bool,
+    }
+    /// / \brief Information about a subscriber.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Subscriber {
+        #[prost(string, tag = "1")]
+        pub topic: ::prost::alloc::string::String,
+    }
+    /// / \brief Information about a publisher.
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Publisher {
+        /// / \brief Topic name.
+        #[prost(string, tag = "1")]
+        pub topic: ::prost::alloc::string::String,
+        /// / \brief ZeroMQ address of the publisher.
+        #[prost(string, tag = "2")]
+        pub address: ::prost::alloc::string::String,
+        /// / \brief Process UUID of the publisher.
+        #[prost(string, tag = "3")]
+        pub process_uuid: ::prost::alloc::string::String,
+        /// / \brief Node UUID of the publisher.
+        #[prost(string, tag = "4")]
+        pub node_uuid: ::prost::alloc::string::String,
+        /// / \brief The scope of this publisher.
+        #[prost(enumeration = "publisher::Scope", tag = "5")]
+        pub scope: i32,
+        /// / \brief Information about a message or service publisher.
+        #[prost(oneof = "publisher::PubType", tags = "6, 7")]
+        pub pub_type: ::core::option::Option<publisher::PubType>,
+    }
+    /// Nested message and enum types in `Publisher`.
+    pub mod publisher {
+        /// / \brief Information about a message publisher.
+        #[derive(::rgz_derive::GzMessage)]
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct MessagePublisher {
+            /// / \brief ZeroMQ control address of the publisher.
+            /// / \todo(caguero) Is this the same as 'socket_id' in the
+            /// / ServicePublisher message?
+            #[prost(string, tag = "1")]
+            pub ctrl: ::prost::alloc::string::String,
+            /// / \brief Message type advertised by this publisher.
+            #[prost(string, tag = "2")]
+            pub msg_type: ::prost::alloc::string::String,
+            /// / \brief Whether the publication has been throttled.
+            #[prost(bool, tag = "3")]
+            pub throttled: bool,
+            /// / \brief The maximum number of messages per second to be published.
+            #[prost(uint64, tag = "4")]
+            pub msgs_per_sec: u64,
+        }
+        /// / \brief Information about service provider.
+        #[derive(::rgz_derive::GzMessage)]
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct ServicePublisher {
+            /// / \brief ZeroMQ socket ID used by this publisher.
+            #[prost(string, tag = "1")]
+            pub socket_id: ::prost::alloc::string::String,
+            /// / \brief The name of the request's protobuf message advertised.
+            #[prost(string, tag = "2")]
+            pub request_type: ::prost::alloc::string::String,
+            /// / \brief The name of the response's protobuf message advertised.
+            #[prost(string, tag = "3")]
+            pub response_type: ::prost::alloc::string::String,
+        }
+        /// / \brief Defines the different options for the scope of a topic/service.
+        #[derive(
+            Clone,
+            Copy,
+            Debug,
+            PartialEq,
+            Eq,
+            Hash,
+            PartialOrd,
+            Ord,
+            ::prost::Enumeration
+        )]
+        #[repr(i32)]
+        pub enum Scope {
+            /// / \brief Topic/service only available to subscribers in the same
+            /// / process as the publisher.
+            Process = 0,
+            /// / \brief Topic/service only available to subscribers in the same
+            /// / machine as the publisher.
+            Host = 1,
+            /// / \brief Topic/service available to any subscriber.
+            All = 2,
+        }
+        impl Scope {
+            /// String value of the enum field names used in the ProtoBuf definition.
+            ///
+            /// The values are not transformed in any way and thus are considered stable
+            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+            pub fn as_str_name(&self) -> &'static str {
+                match self {
+                    Scope::Process => "PROCESS",
+                    Scope::Host => "HOST",
+                    Scope::All => "ALL",
+                }
+            }
+            /// Creates an enum from field names used in the ProtoBuf definition.
+            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+                match value {
+                    "PROCESS" => Some(Self::Process),
+                    "HOST" => Some(Self::Host),
+                    "ALL" => Some(Self::All),
+                    _ => None,
+                }
+            }
+        }
+        /// / \brief Information about a message or service publisher.
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(Clone, PartialEq, ::prost::Oneof)]
+        pub enum PubType {
+            /// / \brief Message publisher.
+            #[prost(message, tag = "6")]
+            MsgPub(MessagePublisher),
+            /// / \brief Service provider.
+            #[prost(message, tag = "7")]
+            SrvPub(ServicePublisher),
+        }
+    }
+    /// / \brief Type of discovery message.
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// / \brief Type not initialized.
+        Uninitialized = 0,
+        /// / \brief Advertise message.
+        Advertise = 1,
+        /// / \brief Subscribe message.
+        Subscribe = 2,
+        /// / \brief Unadvertise message.
+        Unadvertise = 3,
+        /// / \brief Hearbeat message.
+        Heartbeat = 4,
+        /// / \brief Bye message.
+        Bye = 5,
+        /// / \brief New connection message.
+        NewConnection = 6,
+        /// / \brief End connection message.
+        EndConnection = 7,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Type::Uninitialized => "UNINITIALIZED",
+                Type::Advertise => "ADVERTISE",
+                Type::Subscribe => "SUBSCRIBE",
+                Type::Unadvertise => "UNADVERTISE",
+                Type::Heartbeat => "HEARTBEAT",
+                Type::Bye => "BYE",
+                Type::NewConnection => "NEW_CONNECTION",
+                Type::EndConnection => "END_CONNECTION",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNINITIALIZED" => Some(Self::Uninitialized),
+                "ADVERTISE" => Some(Self::Advertise),
+                "SUBSCRIBE" => Some(Self::Subscribe),
+                "UNADVERTISE" => Some(Self::Unadvertise),
+                "HEARTBEAT" => Some(Self::Heartbeat),
+                "BYE" => Some(Self::Bye),
+                "NEW_CONNECTION" => Some(Self::NewConnection),
+                "END_CONNECTION" => Some(Self::EndConnection),
+                _ => None,
+            }
+        }
+    }
+    /// / \brief Optional subscriber or publisher information.
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum DiscContents {
+        /// / \brief Subscriber information.
+        #[prost(message, tag = "6")]
+        Sub(Subscriber),
+        /// / \brief Publisher information.
+        #[prost(message, tag = "7")]
+        Pub(Publisher),
     }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PropagationParticle {
+pub struct Diagnostics {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, repeated, tag = "2")]
+    pub time: ::prost::alloc::vec::Vec<diagnostics::DiagTime>,
+    #[prost(message, optional, tag = "3")]
+    pub real_time: ::core::option::Option<Time>,
+    #[prost(message, optional, tag = "4")]
+    pub sim_time: ::core::option::Option<Time>,
+    #[prost(double, tag = "5")]
+    pub real_time_factor: f64,
+}
+/// Nested message and enum types in `Diagnostics`.
+pub mod diagnostics {
+    #[derive(::rgz_derive::GzMessage)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DiagTime {
+        #[prost(string, tag = "1")]
+        pub name: ::prost::alloc::string::String,
+        #[prost(message, optional, tag = "2")]
+        pub elapsed: ::core::option::Option<super::Time>,
+        #[prost(message, optional, tag = "3")]
+        pub wall: ::core::option::Option<super::Time>,
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Sky {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
     #[prost(double, tag = "2")]
-    pub x: f64,
+    pub time: f64,
     #[prost(double, tag = "3")]
-    pub y: f64,
+    pub sunrise: f64,
     #[prost(double, tag = "4")]
-    pub signal_level: f64,
+    pub sunset: f64,
+    #[prost(double, tag = "5")]
+    pub wind_speed: f64,
+    #[prost(double, tag = "6")]
+    pub wind_direction: f64,
+    #[prost(message, optional, tag = "7")]
+    pub cloud_ambient: ::core::option::Option<Color>,
+    #[prost(double, tag = "8")]
+    pub humidity: f64,
+    #[prost(double, tag = "9")]
+    pub mean_cloud_size: f64,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UInt32 {
+pub struct Scene {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Integer data
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "3")]
+    pub ambient: ::core::option::Option<Color>,
+    #[prost(message, optional, tag = "4")]
+    pub background: ::core::option::Option<Color>,
+    #[prost(message, optional, tag = "5")]
+    pub sky: ::core::option::Option<Sky>,
+    #[prost(bool, tag = "6")]
+    pub shadows: bool,
+    #[prost(message, optional, tag = "7")]
+    pub fog: ::core::option::Option<Fog>,
+    #[prost(bool, tag = "8")]
+    pub grid: bool,
+    #[prost(message, repeated, tag = "9")]
+    pub model: ::prost::alloc::vec::Vec<Model>,
+    #[prost(message, repeated, tag = "10")]
+    pub light: ::prost::alloc::vec::Vec<Light>,
+    #[prost(message, repeated, tag = "11")]
+    pub joint: ::prost::alloc::vec::Vec<Joint>,
+    /// / \brief Show/hide world origin indicator.
+    #[prost(bool, tag = "12")]
+    pub origin_visual: bool,
+    /// / \brief Shadow caster material script.
+    #[prost(message, optional, tag = "13")]
+    pub shadow_caster_material_script: ::core::option::Option<material::Script>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RestResponse {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief ID of the response message
     #[prost(uint32, tag = "2")]
-    pub data: u32,
+    pub id: u32,
+    /// / \brief Type of response
+    #[prost(enumeration = "rest_response::Type", tag = "3")]
+    pub r#type: i32,
+    /// / \brief Message describing the response
+    #[prost(string, tag = "4")]
+    pub msg: ::prost::alloc::string::String,
+}
+/// Nested message and enum types in `RestResponse`.
+pub mod rest_response {
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        /// / \brief Rest service call was successful
+        Success = 0,
+        /// / \brief Error calling rest service
+        Err = 1,
+        /// / \brief Response to a login request
+        Login = 2,
+        /// / \brief Response to a logout request
+        Logout = 3,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Type::Success => "SUCCESS",
+                Type::Err => "ERR",
+                Type::Login => "LOGIN",
+                Type::Logout => "LOGOUT",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "SUCCESS" => Some(Self::Success),
+                "ERR" => Some(Self::Err),
+                "LOGIN" => Some(Self::Login),
+                "LOGOUT" => Some(Self::Logout),
+                _ => None,
+            }
+        }
+    }
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Param {
+pub struct Wind {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief A set of name, value pairs.
+    #[prost(message, optional, tag = "2")]
+    pub linear_velocity: ::core::option::Option<Vector3d>,
+    #[prost(bool, tag = "3")]
+    pub enable_wind: bool,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Int64V {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Vector of int data
+    #[prost(int64, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<i64>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RestLogout {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief ID of this request message
+    #[prost(uint32, tag = "2")]
+    pub id: u32,
+    /// / \brief the web service url
+    #[prost(string, tag = "3")]
+    pub url: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EntityWrenchMap {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief The map of entity wrench messages.
     #[prost(map = "string, message", tag = "2")]
-    pub params: ::std::collections::HashMap<::prost::alloc::string::String, Any>,
-    /// / \brief Params nested within this one.
-    #[prost(message, repeated, tag = "3")]
-    pub children: ::prost::alloc::vec::Vec<Param>,
+    pub wrenches: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        EntityWrench,
+    >,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParamV {
+pub struct Physics {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Repeated params.
-    #[prost(message, repeated, tag = "2")]
-    pub param: ::prost::alloc::vec::Vec<Param>,
+    #[prost(enumeration = "physics::Type", tag = "2")]
+    pub r#type: i32,
+    #[prost(string, tag = "3")]
+    pub solver_type: ::prost::alloc::string::String,
+    #[prost(double, tag = "4")]
+    pub min_step_size: f64,
+    #[prost(int32, tag = "5")]
+    pub precon_iters: i32,
+    #[prost(int32, tag = "6")]
+    pub iters: i32,
+    #[prost(double, tag = "7")]
+    pub sor: f64,
+    #[prost(double, tag = "8")]
+    pub cfm: f64,
+    #[prost(double, tag = "9")]
+    pub erp: f64,
+    #[prost(double, tag = "10")]
+    pub contact_max_correcting_vel: f64,
+    #[prost(double, tag = "11")]
+    pub contact_surface_layer: f64,
+    #[prost(message, optional, tag = "12")]
+    pub gravity: ::core::option::Option<Vector3d>,
+    #[prost(bool, tag = "13")]
+    pub enable_physics: bool,
+    #[prost(double, tag = "14")]
+    pub real_time_factor: f64,
+    #[prost(double, tag = "15")]
+    pub real_time_update_rate: f64,
+    #[prost(double, tag = "16")]
+    pub max_step_size: f64,
+    /// The name of this physics profile (not to be confused with type)
+    #[prost(string, tag = "17")]
+    pub profile_name: ::prost::alloc::string::String,
+    /// / \brief Magnetic field
+    #[prost(message, optional, tag = "18")]
+    pub magnetic_field: ::core::option::Option<Vector3d>,
+}
+/// Nested message and enum types in `Physics`.
+pub mod physics {
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Type {
+        Ode = 0,
+        Bullet = 1,
+        Simbody = 2,
+        Dart = 3,
+    }
+    impl Type {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Type::Ode => "ODE",
+                Type::Bullet => "BULLET",
+                Type::Simbody => "SIMBODY",
+                Type::Dart => "DART",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "ODE" => Some(Self::Ode),
+                "BULLET" => Some(Self::Bullet),
+                "SIMBODY" => Some(Self::Simbody),
+                "DART" => Some(Self::Dart),
+                _ => None,
+            }
+        }
+    }
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PoseTrajectory {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub id: u32,
+    #[prost(message, repeated, tag = "3")]
+    pub pose: ::prost::alloc::vec::Vec<Pose>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VideoRecord {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief True to start video recording
+    #[prost(bool, tag = "2")]
+    pub start: bool,
+    /// / \brief True to stop video recording
+    #[prost(bool, tag = "3")]
+    pub stop: bool,
+    /// / \brief Video encoding format, e.g. "mp4", "ogv"
+    #[prost(string, tag = "4")]
+    pub format: ::prost::alloc::string::String,
+    /// / \brief filename of the recorded video
+    #[prost(string, tag = "5")]
+    pub save_filename: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TopicInfo {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(string, tag = "2")]
+    pub msg_type: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub publisher: ::prost::alloc::vec::Vec<Publish>,
+    #[prost(message, repeated, tag = "4")]
+    pub subscriber: ::prost::alloc::vec::Vec<Subscribe>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -6253,431 +6976,6 @@ pub struct Sonar {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LogStatus {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag = "2")]
-    pub sim_time: ::core::option::Option<Time>,
-    #[prost(message, optional, tag = "3")]
-    pub log_file: ::core::option::Option<log_status::LogFile>,
-}
-/// Nested message and enum types in `LogStatus`.
-pub mod log_status {
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct LogFile {
-        #[prost(string, tag = "1")]
-        pub uri: ::prost::alloc::string::String,
-        #[prost(string, tag = "2")]
-        pub base_path: ::prost::alloc::string::String,
-        #[prost(string, tag = "3")]
-        pub full_path: ::prost::alloc::string::String,
-        #[prost(float, tag = "4")]
-        pub size: f32,
-        #[prost(enumeration = "log_file::Units", tag = "5")]
-        pub size_units: i32,
-        #[prost(bool, tag = "6")]
-        pub record_resources: bool,
-    }
-    /// Nested message and enum types in `LogFile`.
-    pub mod log_file {
-        #[derive(
-            Clone,
-            Copy,
-            Debug,
-            PartialEq,
-            Eq,
-            Hash,
-            PartialOrd,
-            Ord,
-            ::prost::Enumeration
-        )]
-        #[repr(i32)]
-        pub enum Units {
-            Bytes = 0,
-            KBytes = 1,
-            MBytes = 2,
-            GBytes = 3,
-        }
-        impl Units {
-            /// String value of the enum field names used in the ProtoBuf definition.
-            ///
-            /// The values are not transformed in any way and thus are considered stable
-            /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-            pub fn as_str_name(&self) -> &'static str {
-                match self {
-                    Units::Bytes => "BYTES",
-                    Units::KBytes => "K_BYTES",
-                    Units::MBytes => "M_BYTES",
-                    Units::GBytes => "G_BYTES",
-                }
-            }
-            /// Creates an enum from field names used in the ProtoBuf definition.
-            pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-                match value {
-                    "BYTES" => Some(Self::Bytes),
-                    "K_BYTES" => Some(Self::KBytes),
-                    "M_BYTES" => Some(Self::MBytes),
-                    "G_BYTES" => Some(Self::GBytes),
-                    _ => None,
-                }
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LogControl {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(bool, tag = "2")]
-    pub start: bool,
-    #[prost(bool, tag = "3")]
-    pub stop: bool,
-    #[prost(bool, tag = "4")]
-    pub paused: bool,
-    #[prost(string, tag = "5")]
-    pub base_path: ::prost::alloc::string::String,
-    #[prost(string, tag = "6")]
-    pub encoding: ::prost::alloc::string::String,
-    #[prost(string, tag = "7")]
-    pub record_resources: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorldModify {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub world_name: ::prost::alloc::string::String,
-    #[prost(bool, tag = "3")]
-    pub remove: bool,
-    #[prost(bool, tag = "4")]
-    pub create: bool,
-    #[prost(bool, tag = "5")]
-    pub cloned: bool,
-    #[prost(string, tag = "6")]
-    pub cloned_uri: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct NavSat {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Latitude in degrees
-    #[prost(double, tag = "2")]
-    pub latitude_deg: f64,
-    /// / \brief Longitude in degrees
-    #[prost(double, tag = "3")]
-    pub longitude_deg: f64,
-    /// / \brief Altitude in meters
-    #[prost(double, tag = "4")]
-    pub altitude: f64,
-    /// / \brief East velocity in the ENU frame, in m / s
-    #[prost(double, tag = "5")]
-    pub velocity_east: f64,
-    /// / \brief North velocity in the ENU frame, in m / s
-    #[prost(double, tag = "6")]
-    pub velocity_north: f64,
-    /// / \brief Up velocity in the ENU frame, in m / s
-    #[prost(double, tag = "7")]
-    pub velocity_up: f64,
-    /// / \brief ID of reference frame
-    #[prost(string, tag = "8")]
-    pub frame_id: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Int32 {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Integer data
-    #[prost(int32, tag = "2")]
-    pub data: i32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Shadows {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(enumeration = "shadows::ShadowType", tag = "2")]
-    pub r#type: i32,
-    #[prost(message, optional, tag = "3")]
-    pub color: ::core::option::Option<Color>,
-}
-/// Nested message and enum types in `Shadows`.
-pub mod shadows {
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum ShadowType {
-        StencilAdditive = 0,
-        StencilModulative = 1,
-        TextureAdditive = 2,
-        TextureModulative = 3,
-    }
-    impl ShadowType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                ShadowType::StencilAdditive => "STENCIL_ADDITIVE",
-                ShadowType::StencilModulative => "STENCIL_MODULATIVE",
-                ShadowType::TextureAdditive => "TEXTURE_ADDITIVE",
-                ShadowType::TextureModulative => "TEXTURE_MODULATIVE",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "STENCIL_ADDITIVE" => Some(Self::StencilAdditive),
-                "STENCIL_MODULATIVE" => Some(Self::StencilModulative),
-                "TEXTURE_ADDITIVE" => Some(Self::TextureAdditive),
-                "TEXTURE_MODULATIVE" => Some(Self::TextureModulative),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct NavSatSensor {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Position sensing. Consists of horizontal and vertical noise
-    /// / properties
-    #[prost(message, optional, tag = "2")]
-    pub position: ::core::option::Option<nav_sat_sensor::Sensing>,
-    /// / \brief Velocity sensing. Consists of horizontal and vertical noise
-    /// / properties
-    #[prost(message, optional, tag = "3")]
-    pub velocity: ::core::option::Option<nav_sat_sensor::Sensing>,
-}
-/// Nested message and enum types in `NavSatSensor`.
-pub mod nav_sat_sensor {
-    /// / \brief Sensing information
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Sensing {
-        /// / \brief Horizontal noise
-        #[prost(message, optional, tag = "1")]
-        pub horizontal_noise: ::core::option::Option<super::SensorNoise>,
-        /// / \brief Vertical noise
-        #[prost(message, optional, tag = "2")]
-        pub vertical_noise: ::core::option::Option<super::SensorNoise>,
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PoseTrajectory {
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(uint32, tag = "2")]
-    pub id: u32,
-    #[prost(message, repeated, tag = "3")]
-    pub pose: ::prost::alloc::vec::Vec<Pose>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PoseAnimation {
-    #[prost(string, tag = "1")]
-    pub model_name: ::prost::alloc::string::String,
-    #[prost(uint32, tag = "2")]
-    pub model_id: u32,
-    #[prost(message, repeated, tag = "3")]
-    pub pose: ::prost::alloc::vec::Vec<Pose>,
-    #[prost(message, repeated, tag = "4")]
-    pub time: ::prost::alloc::vec::Vec<Time>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RestPost {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief ID of this request message
-    #[prost(uint32, tag = "2")]
-    pub id: u32,
-    /// / \brief Route to post to.
-    #[prost(string, tag = "3")]
-    pub route: ::prost::alloc::string::String,
-    /// / \brief Data to post in JSON format
-    #[prost(string, tag = "4")]
-    pub json: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ModelV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub models: ::prost::alloc::vec::Vec<Model>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Empty {
-    /// / \brief Unused field.
-    #[prost(bool, tag = "1")]
-    pub unused: bool,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SphericalCoordinates {
-    /// / \brief Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Planetary surface model.
-    #[prost(enumeration = "spherical_coordinates::SurfaceModel", tag = "2")]
-    pub surface_model: i32,
-    /// / \brief Latitude in degrees.
-    #[prost(double, tag = "3")]
-    pub latitude_deg: f64,
-    /// / \brief Longitude in degrees.
-    #[prost(double, tag = "4")]
-    pub longitude_deg: f64,
-    /// / \brief Elevation in meters.
-    #[prost(double, tag = "5")]
-    pub elevation: f64,
-    /// / \brief Heading in degrees.
-    #[prost(double, tag = "6")]
-    pub heading_deg: f64,
-    /// / \brief Entity that the coordinates apply to.
-    /// / If not set, defaults to the world origin.
-    #[prost(message, optional, tag = "7")]
-    pub entity: ::core::option::Option<Entity>,
-    /// / \brief Equatorial axis in meters.
-    #[prost(double, tag = "8")]
-    pub surface_axis_equatorial: f64,
-    /// / \brief Polar axis in meters.
-    #[prost(double, tag = "9")]
-    pub surface_axis_polar: f64,
-}
-/// Nested message and enum types in `SphericalCoordinates`.
-pub mod spherical_coordinates {
-    /// / \brief Planetary surface models.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum SurfaceModel {
-        /// / \brief World Geodetic System 1984
-        EarthWgs84 = 0,
-        /// / \brief Model of the moon, based on the Selenographic
-        /// / coordinate system, see wikipedia: Selenographic
-        /// / Coordinate System.
-        MoonScs = 1,
-        /// / \brief Custom surface type
-        CustomSurface = 2,
-    }
-    impl SurfaceModel {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                SurfaceModel::EarthWgs84 => "EARTH_WGS84",
-                SurfaceModel::MoonScs => "MOON_SCS",
-                SurfaceModel::CustomSurface => "CUSTOM_SURFACE",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "EARTH_WGS84" => Some(Self::EarthWgs84),
-                "MOON_SCS" => Some(Self::MoonScs),
-                "CUSTOM_SURFACE" => Some(Self::CustomSurface),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum SphericalCoordinatesType {
-    /// / \brief Latitude, Longitude and Altitude by SurfaceType
-    Spherical = 0,
-    /// / \brief Earth centered, earth fixed Cartesian
-    Ecef = 1,
-    /// / \brief Local tangent plane (East, North, Up)
-    Global = 2,
-    /// / \brief Heading-adjusted tangent plane (X, Y, Z)
-    /// / This has kept a bug for backwards compatibility, use
-    /// / LOCAL2 for the correct behaviour.
-    Local = 3,
-    /// / \brief Heading-adjusted tangent plane (X, Y, Z)
-    Local2 = 4,
-}
-impl SphericalCoordinatesType {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            SphericalCoordinatesType::Spherical => "SPHERICAL",
-            SphericalCoordinatesType::Ecef => "ECEF",
-            SphericalCoordinatesType::Global => "GLOBAL",
-            SphericalCoordinatesType::Local => "LOCAL",
-            SphericalCoordinatesType::Local2 => "LOCAL2",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "SPHERICAL" => Some(Self::Spherical),
-            "ECEF" => Some(Self::Ecef),
-            "GLOBAL" => Some(Self::Global),
-            "LOCAL" => Some(Self::Local),
-            "LOCAL2" => Some(Self::Local2),
-            _ => None,
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RestLogin {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
@@ -6698,244 +6996,20 @@ pub struct RestLogin {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SimEvent {
+pub struct WorldModify {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief ID of this event message
-    #[prost(uint32, tag = "2")]
-    pub id: u32,
-    /// / \brief Type of sim event
-    #[prost(string, tag = "3")]
-    pub r#type: ::prost::alloc::string::String,
-    /// / \brief Name of sim event
-    #[prost(string, tag = "4")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Statistics of the world
-    #[prost(message, optional, tag = "5")]
-    pub world_statistics: ::core::option::Option<WorldStatistics>,
-    /// / \brief Data describing the sim event
+    #[prost(string, tag = "2")]
+    pub world_name: ::prost::alloc::string::String,
+    #[prost(bool, tag = "3")]
+    pub remove: bool,
+    #[prost(bool, tag = "4")]
+    pub create: bool,
+    #[prost(bool, tag = "5")]
+    pub cloned: bool,
     #[prost(string, tag = "6")]
-    pub data: ::prost::alloc::string::String,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Cessna {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Current RPM of the propeller.
-    #[prost(float, tag = "2")]
-    pub propeller_speed: f32,
-    /// / \brief Current left aileron angle in rads.
-    #[prost(float, tag = "3")]
-    pub left_aileron: f32,
-    /// / \brief Current left flap angle in rads.
-    #[prost(float, tag = "4")]
-    pub left_flap: f32,
-    /// / \brief Current right aileron angle in rads.
-    #[prost(float, tag = "5")]
-    pub right_aileron: f32,
-    /// / \brief Current right flap angle in rads.
-    #[prost(float, tag = "6")]
-    pub right_flap: f32,
-    /// / \brief Current elevators angle in rads.
-    #[prost(float, tag = "7")]
-    pub elevators: f32,
-    /// / \brief Current ruddle angle in rads.
-    #[prost(float, tag = "8")]
-    pub rudder: f32,
-    /// / \brief Target RPM of the propeller.
-    #[prost(float, tag = "9")]
-    pub cmd_propeller_speed: f32,
-    /// / \brief Target left aileron angle in rads.
-    #[prost(float, tag = "10")]
-    pub cmd_left_aileron: f32,
-    /// / \brief Target left flap angle in rads.
-    #[prost(float, tag = "11")]
-    pub cmd_left_flap: f32,
-    /// / \brief Target right aileron angle in rads.
-    #[prost(float, tag = "12")]
-    pub cmd_right_aileron: f32,
-    /// / \brief Target right flap angle in rads.
-    #[prost(float, tag = "13")]
-    pub cmd_right_flap: f32,
-    /// / \brief Target elevators angle in rads.
-    #[prost(float, tag = "14")]
-    pub cmd_elevators: f32,
-    /// / \brief Target ruddle angle in rads.
-    #[prost(float, tag = "15")]
-    pub cmd_rudder: f32,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TopicInfo {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub msg_type: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "3")]
-    pub publisher: ::prost::alloc::vec::Vec<Publish>,
-    #[prost(message, repeated, tag = "4")]
-    pub subscriber: ::prost::alloc::vec::Vec<Subscribe>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PropagationGrid {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub particle: ::prost::alloc::vec::Vec<PropagationParticle>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LinkData {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
-    pub linear_velocity: ::core::option::Option<Vector3d>,
-    #[prost(message, optional, tag = "4")]
-    pub angular_velocity: ::core::option::Option<Vector3d>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UInt64V {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Vector of int data
-    #[prost(uint64, repeated, tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<u64>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Statistic {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief The data type.
-    #[prost(enumeration = "statistic::DataType", tag = "2")]
-    pub r#type: i32,
-    /// / \brief Name associated with the statistic.
-    #[prost(string, tag = "3")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief The statistic's value.
-    #[prost(double, tag = "4")]
-    pub value: f64,
-}
-/// Nested message and enum types in `Statistic`.
-pub mod statistic {
-    /// / \brief The type of data represented by this statistic.
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum DataType {
-        /// / \brief The data type has not been initialized.
-        Uninitialized = 0,
-        /// / \brief An average value is represented.
-        Average = 1,
-        /// / \brief A minimum value is represented.
-        Minimum = 2,
-        /// / \brief A maximum value is represented.
-        Maximum = 3,
-        /// / \brief A variance is represented.
-        Variance = 4,
-        /// / \brief A standard deviation is represented.
-        Stddev = 5,
-        /// / \brief A sample count is represented.
-        SampleCount = 6,
-        /// / \brief A root mean square value is represented.
-        RootMeanSquare = 7,
-        /// / \brief A maximum absolute value is represented.
-        MaxAbsValue = 8,
-    }
-    impl DataType {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                DataType::Uninitialized => "UNINITIALIZED",
-                DataType::Average => "AVERAGE",
-                DataType::Minimum => "MINIMUM",
-                DataType::Maximum => "MAXIMUM",
-                DataType::Variance => "VARIANCE",
-                DataType::Stddev => "STDDEV",
-                DataType::SampleCount => "SAMPLE_COUNT",
-                DataType::RootMeanSquare => "ROOT_MEAN_SQUARE",
-                DataType::MaxAbsValue => "MAX_ABS_VALUE",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "UNINITIALIZED" => Some(Self::Uninitialized),
-                "AVERAGE" => Some(Self::Average),
-                "MINIMUM" => Some(Self::Minimum),
-                "MAXIMUM" => Some(Self::Maximum),
-                "VARIANCE" => Some(Self::Variance),
-                "STDDEV" => Some(Self::Stddev),
-                "SAMPLE_COUNT" => Some(Self::SampleCount),
-                "ROOT_MEAN_SQUARE" => Some(Self::RootMeanSquare),
-                "MAX_ABS_VALUE" => Some(Self::MaxAbsValue),
-                _ => None,
-            }
-        }
-    }
-}
-/// / \brief A named group of statistics.
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct StatisticsGroup {
-    /// / \brief Optional header data.
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Name of the group.
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Statistics the belong to this group.
-    #[prost(message, repeated, tag = "3")]
-    pub statistics: ::prost::alloc::vec::Vec<Statistic>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Metric {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Unit of measurement such as seconds, meters, liters.
-    #[prost(string, tag = "2")]
-    pub unit: ::prost::alloc::string::String,
-    /// / \brief Zero or more named groups of statistics. A statistic group is
-    /// / used to bundle data into a logical set with an associated name.
-    #[prost(message, repeated, tag = "3")]
-    pub statistics_groups: ::prost::alloc::vec::Vec<StatisticsGroup>,
-    /// / \brief Zero or more statistics.
-    #[prost(message, repeated, tag = "4")]
-    pub statistics: ::prost::alloc::vec::Vec<Statistic>,
+    pub cloned_uri: ::prost::alloc::string::String,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -7001,195 +7075,6 @@ pub mod atmosphere {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EntityFactory {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Pose where the entity will be spawned in the world.
-    /// / If set, `spherical_coordinates` will be ignored.
-    #[prost(message, optional, tag = "7")]
-    pub pose: ::core::option::Option<Pose>,
-    /// / \brief New name for the entity, overrides the name on the SDF.
-    #[prost(string, tag = "8")]
-    pub name: ::prost::alloc::string::String,
-    /// / \brief Whether the server is allowed to rename the entity in case of
-    /// / overlap with existing entities.
-    #[prost(bool, tag = "9")]
-    pub allow_renaming: bool,
-    /// / \brief The pose will be defined relative to this frame. If left empty,
-    /// / the "world" frame will be used.
-    #[prost(string, tag = "10")]
-    pub relative_to: ::prost::alloc::string::String,
-    /// / \brief Spherical coordinates where the entity will be spawned in the
-    /// / world.
-    /// / If `pose` is also set:
-    /// / * `pose.position` is ignored in favor of latitude, longitude and
-    /// /   elevation.
-    /// / * `pose.orientation` is used in conjunction with heading:
-    /// /       Quaternion::fromEuler(0, 0, heading) * pose.orientation
-    #[prost(message, optional, tag = "11")]
-    pub spherical_coordinates: ::core::option::Option<SphericalCoordinates>,
-    /// / \brief Only one method is supported at a time
-    #[prost(oneof = "entity_factory::From", tags = "2, 3, 4, 5, 6")]
-    pub from: ::core::option::Option<entity_factory::From>,
-}
-/// Nested message and enum types in `EntityFactory`.
-pub mod entity_factory {
-    /// / \brief Only one method is supported at a time
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum From {
-        /// / \brief SDF description in string format.
-        #[prost(string, tag = "2")]
-        Sdf(::prost::alloc::string::String),
-        /// / \brief Full path to SDF file.
-        #[prost(string, tag = "3")]
-        SdfFilename(::prost::alloc::string::String),
-        /// / \brief Description of model to be inserted.
-        #[prost(message, tag = "4")]
-        Model(super::Model),
-        /// / \brief Description of light to be inserted.
-        #[prost(message, tag = "5")]
-        Light(super::Light),
-        /// / \brief Name of entity to clone.
-        #[prost(string, tag = "6")]
-        CloneName(::prost::alloc::string::String),
-    }
-}
-/// / \brief Used for specifying how to load environmental data
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DataLoadPathOptions {
-    /// / \brief File path to load
-    #[prost(string, tag = "1")]
-    pub path: ::prost::alloc::string::String,
-    /// / \brief Name of time axis
-    #[prost(string, tag = "2")]
-    pub time: ::prost::alloc::string::String,
-    /// / \brief Is the data static in time
-    #[prost(bool, tag = "3")]
-    pub static_time: bool,
-    /// / \brief Name of x axis
-    #[prost(string, tag = "4")]
-    pub x: ::prost::alloc::string::String,
-    /// / \brief Name of y axis
-    #[prost(string, tag = "5")]
-    pub y: ::prost::alloc::string::String,
-    /// / \brief Name of z axis
-    #[prost(string, tag = "6")]
-    pub z: ::prost::alloc::string::String,
-    /// / Units
-    #[prost(enumeration = "data_load_path_options::DataAngularUnits", tag = "7")]
-    pub units: i32,
-    /// / Spherical Coodinate type
-    #[prost(enumeration = "SphericalCoordinatesType", tag = "8")]
-    pub coordinate_type: i32,
-}
-/// Nested message and enum types in `DataLoadPathOptions`.
-pub mod data_load_path_options {
-    /// / \brief Units used by spherical coordinates
-    #[derive(
-        Clone,
-        Copy,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        PartialOrd,
-        Ord,
-        ::prost::Enumeration
-    )]
-    #[repr(i32)]
-    pub enum DataAngularUnits {
-        Radians = 0,
-        Degrees = 1,
-    }
-    impl DataAngularUnits {
-        /// String value of the enum field names used in the ProtoBuf definition.
-        ///
-        /// The values are not transformed in any way and thus are considered stable
-        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-        pub fn as_str_name(&self) -> &'static str {
-            match self {
-                DataAngularUnits::Radians => "RADIANS",
-                DataAngularUnits::Degrees => "DEGREES",
-            }
-        }
-        /// Creates an enum from field names used in the ProtoBuf definition.
-        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-            match value {
-                "RADIANS" => Some(Self::Radians),
-                "DEGREES" => Some(Self::Degrees),
-                _ => None,
-            }
-        }
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AnnotatedAxisAligned2DBoxV {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief vector of 2d annotated boxes
-    #[prost(message, repeated, tag = "2")]
-    pub annotated_box: ::prost::alloc::vec::Vec<AnnotatedAxisAligned2DBox>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParameterValue {
-    /// / \brief Serialized protobuf message.
-    #[prost(message, optional, tag = "1")]
-    pub data: ::core::option::Option<::prost_types::Any>,
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SdfGeneratorConfig {
-    /// / \brief Optional header data
-    #[prost(message, optional, tag = "1")]
-    pub header: ::core::option::Option<Header>,
-    /// / \brief Global setting for SDFormat generation of entities
-    #[prost(message, optional, tag = "2")]
-    pub global_entity_gen_config: ::core::option::Option<
-        sdf_generator_config::EntityGeneratorConfig,
-    >,
-    /// / \brief Per-entity override of global settings for SDFormat generation.
-    /// / The key is the scoped name of an entity.
-    #[prost(map = "string, message", tag = "3")]
-    pub override_entity_gen_configs: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        sdf_generator_config::EntityGeneratorConfig,
-    >,
-}
-/// Nested message and enum types in `SdfGeneratorConfig`.
-pub mod sdf_generator_config {
-    /// / \brief Configuration for SDFormat generation of entities (eg. models, actors, lights)
-    #[derive(::rgz_derive::GzMessage)]
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct EntityGeneratorConfig {
-        /// / \brief Expand and inline included entities
-        #[prost(message, optional, tag = "1")]
-        pub expand_include_tags: ::core::option::Option<super::Boolean>,
-        /// / \brief Use the Fuel version in generated URIs of Fuel resources
-        #[prost(message, optional, tag = "2")]
-        pub save_fuel_version: ::core::option::Option<super::Boolean>,
-        /// / \brief Use absolute paths for resources such as meshes
-        #[prost(message, optional, tag = "3")]
-        pub resources_use_absolute_paths: ::core::option::Option<super::Boolean>,
-        /// / \brief Copy model resources, such as meshes, and create a self contained
-        /// / model.
-        #[prost(message, optional, tag = "4")]
-        pub copy_model_resources: ::core::option::Option<super::Boolean>,
-    }
-}
-#[derive(::rgz_derive::GzMessage)]
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Imu {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
@@ -7206,35 +7091,150 @@ pub struct Imu {
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EntityPluginV {
+pub struct WirelessNodes {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief Entity the plugins belong to
+    #[prost(message, repeated, tag = "2")]
+    pub node: ::prost::alloc::vec::Vec<WirelessNode>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OdometryWithCovariance {
+    /// / \brief Optional header data.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Estimated pose.
     #[prost(message, optional, tag = "2")]
-    pub entity: ::core::option::Option<Entity>,
-    /// / \brief Plugin messages.
-    #[prost(message, repeated, tag = "3")]
-    pub plugins: ::prost::alloc::vec::Vec<Plugin>,
+    pub pose_with_covariance: ::core::option::Option<PoseWithCovariance>,
+    /// / \brief Estimated linear and angular velocities.
+    #[prost(message, optional, tag = "3")]
+    pub twist_with_covariance: ::core::option::Option<TwistWithCovariance>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Contacts {
+pub struct JointCmd {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    #[prost(message, repeated, tag = "2")]
-    pub contact: ::prost::alloc::vec::Vec<Contact>,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(int32, tag = "3")]
+    pub axis: i32,
+    #[prost(message, optional, tag = "5")]
+    pub position: ::core::option::Option<Pid>,
+    #[prost(message, optional, tag = "6")]
+    pub velocity: ::core::option::Option<Pid>,
+    #[prost(bool, tag = "7")]
+    pub reset: bool,
+    #[prost(message, optional, tag = "8")]
+    pub force_optional: ::core::option::Option<Double>,
+}
+/// / \brief Holds all the information needed to reconstruct an entity and its
+/// / components.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SerializedEntityMap {
+    /// / \brief The entity is uniquely identified by its ID.
+    #[prost(uint64, tag = "1")]
+    pub id: u64,
+    /// / \brief All the components belonging to the entity.
+    #[prost(map = "int64, message", tag = "2")]
+    pub components: ::std::collections::HashMap<i64, SerializedComponent>,
+    /// / \brief Whether the entity and all its components should be removed at the
+    /// / current state.
+    #[prost(bool, tag = "3")]
+    pub remove: bool,
+}
+/// / \brief Holds all the information needed to reconstruct the state of an
+/// / entity-component-system (ECS) architecture at a given time.
+/// / An ECS's state consists of several entities, each with an arbitrary number
+/// / of components tied to them.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SerializedStateMap {
+    /// / \brief Header data, which contains the simulation time.
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief All the entities currently in the simulation.
+    #[prost(map = "uint64, message", tag = "2")]
+    pub entities: ::std::collections::HashMap<u64, SerializedEntityMap>,
+    /// / \brief Indicates if there is any one time component change,
+    /// / or if all changes are periodic.
+    #[prost(bool, tag = "3")]
+    pub has_one_time_component_changes: bool,
+}
+/// / \brief All the data needed to step an ECS system, such as current
+/// / simulation time and entity states.
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SerializedStepMap {
+    /// / \brief Iteration information, such as sim time and paused state.
+    #[prost(message, optional, tag = "1")]
+    pub stats: ::core::option::Option<WorldStatistics>,
+    /// / \brief State of entities and components.
+    #[prost(message, optional, tag = "2")]
+    pub state: ::core::option::Option<SerializedStateMap>,
 }
 #[derive(::rgz_derive::GzMessage)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EntityFactoryV {
+pub struct UInt32V {
     /// / \brief Optional header data
     #[prost(message, optional, tag = "1")]
     pub header: ::core::option::Option<Header>,
-    /// / \brief The set of entity factory messages.
+    /// / \brief Vector of int data
+    #[prost(uint32, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<u32>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VisualV {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Visual messages.
     #[prost(message, repeated, tag = "2")]
-    pub data: ::prost::alloc::vec::Vec<EntityFactory>,
+    pub visuals: ::prost::alloc::vec::Vec<Visual>,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ModelConfiguration {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// Time when the pose should be enforced
+    #[prost(message, optional, tag = "2")]
+    pub time: ::core::option::Option<Time>,
+    #[prost(string, repeated, tag = "3")]
+    pub joint_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(double, repeated, tag = "4")]
+    pub joint_positions: ::prost::alloc::vec::Vec<f64>,
+    /// Specify model pose
+    #[prost(message, optional, tag = "5")]
+    pub pose: ::core::option::Option<Pose>,
+    /// Option to set model pose by specifying pose of link
+    #[prost(string, tag = "6")]
+    pub link_name: ::prost::alloc::string::String,
+}
+#[derive(::rgz_derive::GzMessage)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Odometry {
+    /// / \brief Optional header data
+    #[prost(message, optional, tag = "1")]
+    pub header: ::core::option::Option<Header>,
+    /// / \brief Estimated pose.
+    #[prost(message, optional, tag = "2")]
+    pub pose: ::core::option::Option<Pose>,
+    /// / \brief Estimated velocity.
+    #[prost(message, optional, tag = "3")]
+    pub twist: ::core::option::Option<Twist>,
 }

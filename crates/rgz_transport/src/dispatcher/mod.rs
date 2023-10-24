@@ -1,18 +1,17 @@
-use std::fmt::Debug;
 use anyhow::Result;
+use std::fmt::Debug;
 
-mod service;
 mod request;
-mod subscription;
-mod store;
 mod response;
+mod service;
+mod store;
+mod subscription;
 
-
-pub(crate) use store::{DispatcherStore, DeleteFunction, CleanFunction};
-pub(crate) use subscription::{Subscriber};
-pub(crate) use request::{PendingRequest};
-pub(crate) use response::{ResponseDispatcher};
-pub(crate) use service::{ServiceDispatcher};
+pub(crate) use request::PendingRequest;
+pub(crate) use response::ResponseDispatcher;
+pub(crate) use service::ServiceDispatcher;
+pub(crate) use store::{CleanFunction, DeleteFunction, DispatcherStore};
+pub(crate) use subscription::Subscriber;
 
 pub(crate) trait Dispatcher: Debug {
     fn uuid(&self) -> &str;

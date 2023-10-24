@@ -1,18 +1,23 @@
+use anyhow::{bail, Result};
 use std::collections::{HashMap, HashSet};
-use std::{env, io};
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::sync::{Arc, Mutex};
-use anyhow::{bail, Result};
+use std::{env, io};
 use tokio::net::UdpSocket;
 use tokio::select;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
-use tokio::time::{self, Instant, Duration};
+use tokio::time::{self, Duration, Instant};
 use tracing::{debug, error, info, trace, warn};
 
 use crate::discovery::store::DiscoveryStore;
-use crate::discovery::{DEF_ACTIVITY_INTERVAL, DEF_HEARTBEAT_INTERVAL, DEF_SILENCE_INTERVAL, discovery_msg_decode, discovery_msg_encode, MAX_RCV_STR, TIMEOUT, version};
-use crate::discovery::{DiscoveryDiscContents, DiscoveryFlags, DiscoveryMsg, DiscoveryPublisher,
-                 DiscoveryScope, DiscoverySubscriber, DiscoveryType};
+use crate::discovery::{
+    discovery_msg_decode, discovery_msg_encode, version, DEF_ACTIVITY_INTERVAL,
+    DEF_HEARTBEAT_INTERVAL, DEF_SILENCE_INTERVAL, MAX_RCV_STR, TIMEOUT,
+};
+use crate::discovery::{
+    DiscoveryDiscContents, DiscoveryFlags, DiscoveryMsg, DiscoveryPublisher, DiscoveryScope,
+    DiscoverySubscriber, DiscoveryType,
+};
 use crate::utils::net as net_utils;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -128,27 +133,43 @@ impl Discovery {
     }
 
     pub(crate) fn set_connection_cb<F>(&mut self, callback: F)
-        where F: Fn(DiscoveryPublisher) + Send + Sync + 'static
+    where
+        F: Fn(DiscoveryPublisher) + Send + Sync + 'static,
     {
-        self.connection_cb.lock().unwrap().replace(Box::new(callback));
+        self.connection_cb
+            .lock()
+            .unwrap()
+            .replace(Box::new(callback));
     }
 
     pub(crate) fn set_disconnection_cb<F>(&mut self, callback: F)
-        where F: Fn(DiscoveryPublisher) + Send + Sync + 'static
+    where
+        F: Fn(DiscoveryPublisher) + Send + Sync + 'static,
     {
-        self.disconnection_cb.lock().unwrap().replace(Box::new(callback));
+        self.disconnection_cb
+            .lock()
+            .unwrap()
+            .replace(Box::new(callback));
     }
 
     pub(crate) fn set_registration_cb<F>(&mut self, callback: F)
-        where F: Fn(DiscoveryPublisher) + Send + Sync + 'static
+    where
+        F: Fn(DiscoveryPublisher) + Send + Sync + 'static,
     {
-        self.registration_cb.lock().unwrap().replace(Box::new(callback));
+        self.registration_cb
+            .lock()
+            .unwrap()
+            .replace(Box::new(callback));
     }
 
     pub(crate) fn set_unregistration_cb<F>(&mut self, callback: F)
-        where F: Fn(DiscoveryPublisher) + Send + Sync + 'static
+    where
+        F: Fn(DiscoveryPublisher) + Send + Sync + 'static,
     {
-        self.unregistration_cb.lock().unwrap().replace(Box::new(callback));
+        self.unregistration_cb
+            .lock()
+            .unwrap()
+            .replace(Box::new(callback));
     }
 
     pub fn advertise(&self, discovery_publisher: DiscoveryPublisher) -> Result<()> {
@@ -161,7 +182,7 @@ impl Discovery {
 
         // Only advertise a message outside this process if the scope is not 'Process'
         let scope = DiscoveryScope::from_i32(discovery_publisher.scope);
-        if scope.is_none() || scope == Some(DiscoveryScope::Process){
+        if scope.is_none() || scope == Some(DiscoveryScope::Process) {
             bail!("Only advertise a message if the scope is not 'Process'");
         }
 
@@ -169,7 +190,7 @@ impl Discovery {
             sender.send(SendMsg {
                 destination_type: DestinationType::All,
                 discovery_type: DiscoveryType::Advertise,
-                discovery_publisher
+                discovery_publisher,
             })?;
         }
 
@@ -183,7 +204,7 @@ impl Discovery {
             let mut store = self.discovery_store.lock().unwrap();
             if let Some(p) = store.publisher(topic, &self.p_uuid, n_uuid) {
                 publisher = Some(p.clone());
-            }else{
+            } else {
                 warn!("Failed to find publisher");
                 return Ok(());
             }
@@ -201,7 +222,7 @@ impl Discovery {
             sender.send(SendMsg {
                 destination_type: DestinationType::All,
                 discovery_type: DiscoveryType::Unadvertise,
-                discovery_publisher: publisher
+                discovery_publisher: publisher,
             })?;
         }
 
@@ -209,7 +230,6 @@ impl Discovery {
     }
 
     pub fn discover(&self, topic: &str) -> Result<()> {
-
         if let Some(sender) = self.msg_sender.as_ref() {
             let publisher = DiscoveryPublisher {
                 topic: topic.to_string(),
@@ -220,15 +240,15 @@ impl Discovery {
             sender.send(SendMsg {
                 destination_type: DestinationType::All,
                 discovery_type: DiscoveryType::Subscribe,
-                discovery_publisher: publisher
+                discovery_publisher: publisher,
             })?;
 
             let publishers = {
                 let store = self.discovery_store.lock().unwrap();
                 let mut v = vec![];
-                for p in store.publishers(Some(topic), None, None){
+                for p in store.publishers(Some(topic), None, None) {
                     v.push(p.clone())
-                };
+                }
                 v
             };
 
@@ -242,12 +262,12 @@ impl Discovery {
         Ok(())
     }
 
-    pub fn register(&self, publisher: DiscoveryPublisher) -> Result<()>{
+    pub fn register(&self, publisher: DiscoveryPublisher) -> Result<()> {
         if let Some(sender) = self.msg_sender.as_ref() {
             sender.send(SendMsg {
                 destination_type: DestinationType::All,
                 discovery_type: DiscoveryType::NewConnection,
-                discovery_publisher: publisher
+                discovery_publisher: publisher,
             })?;
         }
         Ok(())
@@ -258,7 +278,7 @@ impl Discovery {
             sender.send(SendMsg {
                 destination_type: DestinationType::All,
                 discovery_type: DiscoveryType::EndConnection,
-                discovery_publisher: publisher.clone()
+                discovery_publisher: publisher.clone(),
             })?;
         }
         Ok(())
@@ -267,22 +287,28 @@ impl Discovery {
     // Get all the publishers' information known for a given topic.
     pub fn publishers(&self, topic: &str) -> Option<Vec<DiscoveryPublisher>> {
         let store = self.discovery_store.lock().unwrap();
-        let publishers: Vec<DiscoveryPublisher> = store.publishers(Some(topic), None, None)
+        let publishers: Vec<DiscoveryPublisher> = store
+            .publishers(Some(topic), None, None)
             .into_iter()
             .cloned()
             .collect();
 
-        if publishers.is_empty(){
+        if publishers.is_empty() {
             None
-        }else{
+        } else {
             Some(publishers)
         }
     }
 
     // Get the list of topics currently advertised in the network.
     pub fn topic_list(&self) -> Vec<String> {
-        self.discovery_store.lock().unwrap().topic_list()
-            .into_iter().map(|s| s.to_string()).collect()
+        self.discovery_store
+            .lock()
+            .unwrap()
+            .topic_list()
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect()
     }
 
     pub fn host_addr(&self) -> &Ipv4Addr {
@@ -290,7 +316,6 @@ impl Discovery {
     }
 
     pub fn print_current_state(&self) {
-
         {
             let store = self.discovery_store.lock().unwrap();
             store.print();
@@ -304,7 +329,8 @@ impl Discovery {
         let mut heartbeat_interval = time::interval(Duration::from_millis(self.heartbeat_interval));
         let mut activity_interval = time::interval(Duration::from_millis(self.activity_interval));
 
-        self.register_host_interfaces().expect("Failed to register host interfaces.");
+        self.register_host_interfaces()
+            .expect("Failed to register host interfaces.");
         let socket = self.socket.clone().unwrap();
         let inner = DiscoveryInner::new(
             self.version,
@@ -377,15 +403,25 @@ impl Discovery {
                 if net_iface == &self.host_addr {
                     let addr = "127.0.0.1:0".parse::<SocketAddrV4>().unwrap();
                     socket.join_multicast_v4(self.multicast_addr.ip(), addr.ip())?;
-                    error!("Did you set the environment variable GZ_IP with a correct IP address? ");
+                    error!(
+                        "Did you set the environment variable GZ_IP with a correct IP address? "
+                    );
                     error!("  [{}] seems an invalid local IP address.", net_iface);
                     error!("  Using 127.0.0.1 as hostname.");
                     self.host_addr = *addr.ip();
                 } else {
-                    error!("Failed to join multicast group [{}] on interface [{}].", self.multicast_addr.ip(), net_iface);
+                    error!(
+                        "Failed to join multicast group [{}] on interface [{}].",
+                        self.multicast_addr.ip(),
+                        net_iface
+                    );
                 }
             } else {
-                debug!("Joining multicast group [{}] on interface [{}].", self.multicast_addr.ip(), net_iface);
+                debug!(
+                    "Joining multicast group [{}] on interface [{}].",
+                    self.multicast_addr.ip(),
+                    net_iface
+                );
             }
         }
 
@@ -405,13 +441,13 @@ impl Discovery {
 impl Drop for Discovery {
     fn drop(&mut self) {
         if let Some(sender) = self.msg_sender.as_ref() {
-            if let Err(err) = sender.send(SendMsg{
+            if let Err(err) = sender.send(SendMsg {
                 destination_type: DestinationType::All,
                 discovery_type: DiscoveryType::Bye,
                 discovery_publisher: DiscoveryPublisher {
                     process_uuid: self.p_uuid.clone(),
                     ..Default::default()
-                }
+                },
             }) {
                 debug!("Failed to send bye message: {}", err);
             }
@@ -476,7 +512,12 @@ impl DiscoveryInner {
             || from_ip.to_string().starts_with("127.")
     }
 
-    async fn recv_messages(&self, mut rcv_str:Vec<u8>, len: usize, addr: SocketAddr) -> Result<()> {
+    async fn recv_messages(
+        &self,
+        mut rcv_str: Vec<u8>,
+        len: usize,
+        addr: SocketAddr,
+    ) -> Result<()> {
         if len == 0 {
             bail!("Received an empty discovery message.");
         }
@@ -498,12 +539,15 @@ impl DiscoveryInner {
         Ok(())
     }
     async fn update_heartbeat(&self) -> Result<()> {
-        self.send_msg(DestinationType::All,
-                      DiscoveryType::Heartbeat,
-                      DiscoveryPublisher {
-                          process_uuid: self.p_uuid.clone(),
-                          ..Default::default()
-                      }).await?;
+        self.send_msg(
+            DestinationType::All,
+            DiscoveryType::Heartbeat,
+            DiscoveryPublisher {
+                process_uuid: self.p_uuid.clone(),
+                ..Default::default()
+            },
+        )
+        .await?;
 
         // Re-advertise topics that are advertised inside this process.
         let publishers = {
@@ -516,9 +560,8 @@ impl DiscoveryInner {
         };
 
         for p in publishers {
-            self.send_msg(DestinationType::All,
-                          DiscoveryType::Advertise,
-                          p).await?;
+            self.send_msg(DestinationType::All, DiscoveryType::Advertise, p)
+                .await?;
         }
 
         Ok(())
@@ -534,7 +577,7 @@ impl DiscoveryInner {
                     debug!("Detect inactive process: {}", process_uuid);
                     v.push(process_uuid.clone());
                     false
-                }else{
+                } else {
                     true
                 }
             });
@@ -553,7 +596,8 @@ impl DiscoveryInner {
                     } else {
                         true
                     }
-                }).collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
         };
 
         // Trigger the disconnection callback.
@@ -570,8 +614,7 @@ impl DiscoveryInner {
         Ok(())
     }
 
-    async fn dispatch_discovery_msg(&self, mut msg: DiscoveryMsg, from_ip: Ipv4Addr) -> Result<()>
-    {
+    async fn dispatch_discovery_msg(&self, mut msg: DiscoveryMsg, from_ip: Ipv4Addr) -> Result<()> {
         // "Received a discovery message with a different version number."
         if self.version != msg.version {
             return Ok(());
@@ -626,34 +669,42 @@ impl DiscoveryInner {
 
         let mut publisher = match msg.disc_contents {
             Some(DiscoveryDiscContents::Pub(ref publisher)) => publisher.clone(),
-            _ => DiscoveryPublisher{ ..Default::default() }
+            _ => DiscoveryPublisher {
+                ..Default::default()
+            },
         };
 
         let is_sender_local = self.is_local_ip(from_ip);
 
-        let msg_type = DiscoveryType::from_i32(msg.r#type)
-            .unwrap_or(DiscoveryType::Uninitialized);
+        let msg_type = DiscoveryType::from_i32(msg.r#type).unwrap_or(DiscoveryType::Uninitialized);
 
         // debug!("Received [{}] from [{}].", &msg_type.as_str_name(), &msg.process_uuid);
         match msg_type {
             DiscoveryType::Advertise => {
                 // Check scope of the topic.
                 if let Some(scope) = DiscoveryScope::from_i32(publisher.scope) {
-                    if scope == DiscoveryScope::Process || (scope == DiscoveryScope::Host && !is_sender_local) {
+                    if scope == DiscoveryScope::Process
+                        || (scope == DiscoveryScope::Host && !is_sender_local)
+                    {
                         return Ok(()); // Discard the message.
                     }
                 }
 
                 // Register an advertised address for the topic.
-                match self.discovery_store.lock().unwrap().add_publisher(publisher.clone()) {
+                match self
+                    .discovery_store
+                    .lock()
+                    .unwrap()
+                    .add_publisher(publisher.clone())
+                {
                     Ok(_) => {
                         if let Some(cb) = self.connection_cb.lock().unwrap().as_ref() {
                             cb(publisher.clone());
                         }
-                    },
+                    }
                     Err(_e) => {
                         // debug!("{:?}", _e);
-                    },
+                    }
                 }
             }
 
@@ -665,12 +716,10 @@ impl DiscoveryInner {
                     let publishers = {
                         let mut v = vec![];
                         let store = self.discovery_store.lock().unwrap();
-                        for p in store.publishers(
-                            Some(recv_topic), Some(&msg.process_uuid), None)
-                        {
+                        for p in store.publishers(Some(recv_topic), Some(&msg.process_uuid), None) {
                             if let Some(scope) = DiscoveryScope::from_i32(p.scope) {
-                                if scope == DiscoveryScope::Process ||
-                                    (scope == DiscoveryScope::Host && !is_sender_local)
+                                if scope == DiscoveryScope::Process
+                                    || (scope == DiscoveryScope::Host && !is_sender_local)
                                 {
                                     continue;
                                 }
@@ -680,9 +729,8 @@ impl DiscoveryInner {
                         v
                     };
                     for publisher in publishers {
-                        self.send_msg(DestinationType::All,
-                                      DiscoveryType::Advertise,
-                                      publisher).await?;
+                        self.send_msg(DestinationType::All, DiscoveryType::Advertise, publisher)
+                            .await?;
                     }
                 } else {
                     bail!("Subscription discovery message is missing Subscriber information.");
@@ -723,9 +771,9 @@ impl DiscoveryInner {
                 }
             }
             DiscoveryType::Unadvertise => {
-
                 if let Some(scope) = DiscoveryScope::from_i32(publisher.scope) {
-                    if scope == DiscoveryScope::Process || (scope == DiscoveryScope::Host && !is_sender_local)
+                    if scope == DiscoveryScope::Process
+                        || (scope == DiscoveryScope::Host && !is_sender_local)
                     {
                         return Ok(()); // Discard the message.
                     }
@@ -737,10 +785,11 @@ impl DiscoveryInner {
 
                 {
                     let mut store = self.discovery_store.lock().unwrap();
-                    if let Err(e) = store.del_publisher_by_node(&publisher.topic,
-                                                                &publisher.process_uuid,
-                                                                &publisher.node_uuid)
-                    {
+                    if let Err(e) = store.del_publisher_by_node(
+                        &publisher.topic,
+                        &publisher.process_uuid,
+                        &publisher.node_uuid,
+                    ) {
                         debug!("Failed to remove publisher: {:?}", e);
                     }
                 }
@@ -752,12 +801,12 @@ impl DiscoveryInner {
 
         Ok(())
     }
-    async fn send_msg(&self,
-                      destination_type: DestinationType,
-                      discovery_type: DiscoveryType,
-                      publisher: DiscoveryPublisher
-    ) -> Result<()>
-    {
+    async fn send_msg(
+        &self,
+        destination_type: DestinationType,
+        discovery_type: DiscoveryType,
+        publisher: DiscoveryPublisher,
+    ) -> Result<()> {
         let mut discovery_msg = DiscoveryMsg {
             version: self.version,
             process_uuid: self.p_uuid.clone(),
@@ -766,10 +815,10 @@ impl DiscoveryInner {
         discovery_msg.set_type(discovery_type);
 
         match discovery_type {
-            DiscoveryType::Advertise |
-            DiscoveryType::Unadvertise |
-            DiscoveryType::NewConnection |
-            DiscoveryType::EndConnection => {
+            DiscoveryType::Advertise
+            | DiscoveryType::Unadvertise
+            | DiscoveryType::NewConnection
+            | DiscoveryType::EndConnection => {
                 let disc_contents = DiscoveryDiscContents::Pub(publisher.clone());
                 discovery_msg.disc_contents = Some(disc_contents);
             }
@@ -780,19 +829,23 @@ impl DiscoveryInner {
                 let disc_contents = DiscoveryDiscContents::Sub(subscriber);
                 discovery_msg.disc_contents = Some(disc_contents);
             }
-            DiscoveryType::Heartbeat |
-            DiscoveryType::Bye => {}
+            DiscoveryType::Heartbeat | DiscoveryType::Bye => {}
             _ => {
-                bail!("Discovery::SendMsg() error: Unrecognized message type [{:?}]",
-                         discovery_type.as_str_name());
+                bail!(
+                    "Discovery::SendMsg() error: Unrecognized message type [{:?}]",
+                    discovery_type.as_str_name()
+                );
             }
         }
 
-        if destination_type == DestinationType::Multicast || destination_type == DestinationType::All {
+        if destination_type == DestinationType::Multicast
+            || destination_type == DestinationType::All
+        {
             self.send_multicast(&discovery_msg).await?;
         }
 
-        if destination_type == DestinationType::Unicast || destination_type == DestinationType::All {
+        if destination_type == DestinationType::Unicast || destination_type == DestinationType::All
+        {
             let flags = DiscoveryFlags {
                 relay: true,
                 no_relay: false,
@@ -802,17 +855,25 @@ impl DiscoveryInner {
         }
 
         if self.verbose {
-            info!("\t* Sending: {} topic [{}] in p_uuid[{}]",
-                discovery_type.as_str_name(), publisher.topic, self.p_uuid);
+            info!(
+                "\t* Sending: {} topic [{}] in p_uuid[{}]",
+                discovery_type.as_str_name(),
+                publisher.topic,
+                self.p_uuid
+            );
         }
 
         Ok(())
     }
 
     async fn send_unicast(&self, msg: &DiscoveryMsg) -> Result<()> {
-
         let addrs = {
-            self.relay_addrs.lock().unwrap().iter().map(|x| x.clone()).collect::<Vec<_>>()
+            self.relay_addrs
+                .lock()
+                .unwrap()
+                .iter()
+                .map(|x| x.clone())
+                .collect::<Vec<_>>()
         };
 
         if let Ok((buffer, total_size)) = discovery_msg_encode(&msg) {
@@ -843,7 +904,10 @@ impl DiscoveryInner {
             // for sock in self.sockets.iter() { }
             match self.socket.send_to(&buffer, self.multicast_addr).await {
                 Ok(sent) if sent != total_size => {
-                    eprintln!("Exception sending a multicast message: {}", io::Error::last_os_error());
+                    eprintln!(
+                        "Exception sending a multicast message: {}",
+                        io::Error::last_os_error()
+                    );
                     // break;
                 }
                 Err(err) => {
@@ -875,18 +939,21 @@ mod tests {
     const SERVICE_NAME: &str = "test_service";
     const ADDR1: &str = "tcp://127.0.0.1:12345";
     const CTRL1: &str = "tcp://127.0.0.1:12346";
-    const P_UUID1: Lazy<String> = Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000011").to_string());
-    const N_UUID1: Lazy<String> = Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000012").to_string());
+    const P_UUID1: Lazy<String> =
+        Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000011").to_string());
+    const N_UUID1: Lazy<String> =
+        Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000012").to_string());
     const ADDR2: &str = "tcp://127.0.0.1:12347";
     const CTRL2: &str = "tcp://127.0.0.1:12348";
-    const P_UUID2: Lazy<String> = Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000021").to_string());
-    const N_UUID2: Lazy<String> = Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000022").to_string());
+    const P_UUID2: Lazy<String> =
+        Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000021").to_string());
+    const N_UUID2: Lazy<String> =
+        Lazy::new(|| uuid!("00000000-0000-0000-0000-000000000022").to_string());
 
     // Try to use the discovery features without calling start().
     #[tokio::test]
     async fn test_without_calling_start() {
-        let mut discovery =
-            Discovery::new(&P_UUID1,IP, MSG_PORT, true);
+        let mut discovery = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
 
         let result = discovery.advertise(DiscoveryPublisher {
             topic: TOPIC.to_string(),
@@ -912,24 +979,24 @@ mod tests {
         //     .with_max_level(tracing::Level::DEBUG)
         //     .init();
 
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
-        let mut discovery2 =
-            Discovery::new(&P_UUID2, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID2, IP, MSG_PORT, true);
 
         discovery1.start();
         discovery2.start();
 
         time::sleep(Duration::from_millis(100)).await;
 
-        discovery1.advertise(DiscoveryPublisher {
-            topic: TOPIC.to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: None,
+            })
+            .unwrap();
 
         time::sleep(Duration::from_millis(100)).await;
 
@@ -943,10 +1010,8 @@ mod tests {
     // Check that the discovery triggers the callbacks after an advertise.
     #[tokio::test]
     async fn test_advertise_with_callback() {
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
-        let mut discovery2 =
-            Discovery::new(&P_UUID2, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID2, IP, MSG_PORT, true);
 
         let check = Arc::new(Mutex::new(false));
         let check1 = check.clone();
@@ -958,14 +1023,16 @@ mod tests {
         discovery1.start();
         discovery2.start();
 
-        discovery1.advertise(DiscoveryPublisher {
-            topic: TOPIC.to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: None,
+            })
+            .unwrap();
 
         time::sleep(Duration::from_millis(100)).await;
 
@@ -979,14 +1046,16 @@ mod tests {
             *c = false;
         }
 
-        discovery1.advertise(DiscoveryPublisher {
-            topic: "topic2".to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::Host as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: "topic2".to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::Host as i32,
+                pub_type: None,
+            })
+            .unwrap();
 
         time::sleep(Duration::from_millis(100)).await;
         {
@@ -997,10 +1066,8 @@ mod tests {
     //
     #[tokio::test]
     async fn test_advertise_same_process() {
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
-        let mut discovery2 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
 
         let check = Arc::new(Mutex::new(false));
         let check1 = check.clone();
@@ -1012,14 +1079,16 @@ mod tests {
         discovery1.start();
         discovery2.start();
 
-        discovery1.advertise(DiscoveryPublisher {
-            topic: TOPIC.to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: None,
+            })
+            .unwrap();
 
         time::sleep(Duration::from_millis(100)).await;
         {
@@ -1032,23 +1101,23 @@ mod tests {
     // and after register the discovery callback.
     #[tokio::test]
     async fn test_discovery() {
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
-        let mut discovery2 =
-            Discovery::new(&P_UUID2, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID2, IP, MSG_PORT, true);
         let check = Arc::new(Mutex::new(false));
 
         discovery1.start();
         discovery2.start();
 
-        discovery1.advertise(DiscoveryPublisher {
-            topic: TOPIC.to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: None,
+            })
+            .unwrap();
         time::sleep(Duration::from_millis(100)).await;
 
         {
@@ -1080,10 +1149,8 @@ mod tests {
             .with_max_level(tracing::Level::DEBUG)
             .init();
 
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
-        let mut discovery2 =
-            Discovery::new(&P_UUID2, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID2, IP, MSG_PORT, true);
         let check = Arc::new(Mutex::new(false));
         let check1 = check.clone();
         discovery2.set_disconnection_cb(move |publisher| {
@@ -1094,14 +1161,16 @@ mod tests {
         discovery1.start();
         discovery2.start();
 
-        discovery1.advertise(DiscoveryPublisher {
-            topic: TOPIC.to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: None,
+            })
+            .unwrap();
 
         time::sleep(Duration::from_millis(100)).await;
         {
@@ -1117,7 +1186,6 @@ mod tests {
             let c = check.lock().unwrap();
             assert_eq!(*c, true);
         }
-
     }
 
     // Check that the discovery triggers the disconnection callback after
@@ -1128,10 +1196,8 @@ mod tests {
             .with_max_level(tracing::Level::DEBUG)
             .init();
 
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
-        let mut discovery2 =
-            Discovery::new(&P_UUID2, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID2, IP, MSG_PORT, true);
         let check = Arc::new(Mutex::new(false));
         let check1 = check.clone();
         discovery2.set_disconnection_cb(move |publisher| {
@@ -1142,14 +1208,16 @@ mod tests {
         discovery1.start();
         discovery2.start();
 
-        discovery1.advertise(DiscoveryPublisher {
-            topic: TOPIC.to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: None,
+            })
+            .unwrap();
 
         time::sleep(Duration::from_millis(100)).await;
 
@@ -1166,18 +1234,14 @@ mod tests {
             let c = check.lock().unwrap();
             assert_eq!(*c, true);
         }
-
     }
-
 
     // Check that the discovery detects two publishers advertising the same
     // topic name.
     #[tokio::test]
     async fn test_two_publishers_same_topic() {
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
-        let mut discovery2 =
-            Discovery::new(&P_UUID2, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID2, IP, MSG_PORT, true);
 
         let counter = Arc::new(Mutex::new(0));
         let c = counter.clone();
@@ -1226,7 +1290,6 @@ mod tests {
             let c = counter.lock().unwrap();
             assert_eq!(*c, 2);
         }
-
     }
 
     // Check that a discovery service sends messages if there are
@@ -1237,34 +1300,38 @@ mod tests {
         //     .with_max_level(tracing::Level::DEBUG)
         //     .init();
 
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
 
         discovery1.start();
 
-        let mut discovery2 =
-            Discovery::new(&P_UUID2, IP, MSG_PORT, true);
+        let mut discovery2 = Discovery::new(&P_UUID2, IP, MSG_PORT, true);
 
         discovery2.start();
-        discovery1.advertise(DiscoveryPublisher {
-            topic: TOPIC.to_string(),
-            address: ADDR1.to_string(),
-            process_uuid: P_UUID1.to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: None,
-        }).unwrap();
+        discovery1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: ADDR1.to_string(),
+                process_uuid: P_UUID1.to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: None,
+            })
+            .unwrap();
 
         time::sleep(Duration::from_millis(100)).await;
 
         {
             let activity = discovery1.activity.lock().unwrap();
-            assert!(activity.iter().any(|(process_uuid, _)| process_uuid == &P_UUID2.to_string()));
+            assert!(activity
+                .iter()
+                .any(|(process_uuid, _)| process_uuid == &P_UUID2.to_string()));
         }
 
         {
             let activity = discovery2.activity.lock().unwrap();
-            assert!(activity.iter().any(|(process_uuid, _)| process_uuid == &P_UUID1.to_string()));
+            assert!(activity
+                .iter()
+                .any(|(process_uuid, _)| process_uuid == &P_UUID1.to_string()));
         }
 
         drop(discovery2);
@@ -1273,9 +1340,13 @@ mod tests {
 
         {
             let activity = discovery1.activity.lock().unwrap();
-            assert_eq!(activity.iter().any(|(process_uuid, _)| process_uuid == &P_UUID2.to_string()), false);
+            assert_eq!(
+                activity
+                    .iter()
+                    .any(|(process_uuid, _)| process_uuid == &P_UUID2.to_string()),
+                false
+            );
         }
-
     }
 
     // Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
@@ -1287,16 +1358,14 @@ mod tests {
         }
         env::set_var("GZ_IP", "127.0.0.1");
 
-        let mut discovery1 =
-            Discovery::new(&P_UUID1, IP, MSG_PORT, true);
+        let mut discovery1 = Discovery::new(&P_UUID1, IP, MSG_PORT, true);
 
         assert_eq!(discovery1.host_addr.to_string(), "127.0.0.1");
 
         if let Some(ip) = gz_ip {
             env::set_var("GZ_IP", ip);
-        }else{
+        } else {
             env::set_var("GZ_IP", "");
         }
     }
-
 }

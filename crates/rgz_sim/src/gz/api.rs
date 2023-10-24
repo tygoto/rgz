@@ -1,33 +1,32 @@
-use std::ops::Deref;
 use anyhow::Result;
+use std::ops::Deref;
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy::utils::HashMap;
-use tokio::runtime::Runtime;
-use tokio::sync::mpsc::{Sender, Receiver};
-use tokio::select;
-use tokio::sync::mpsc;
 use prost::Message;
 use rgz_msgs::GzMessage;
+use tokio::runtime::Runtime;
+use tokio::select;
+use tokio::sync::mpsc;
+use tokio::sync::mpsc::{Receiver, Sender};
 
-use rgz_msgs as msgs;
 use crate::gz::event::{PoseEvent, SceneEvent};
 use crate::gz::service::{GzService, ServiceResponse, ServiceTopic, Subscription};
+use rgz_msgs as msgs;
 
 #[derive(Resource, Deref, DerefMut)]
 pub struct AsyncRuntime(pub(crate) Runtime);
 
-
 #[derive(Resource)]
 pub struct GzAPI {
     world_name: String,
-    service: GzService
+    service: GzService,
 }
 impl GzAPI {
     fn new(service: GzService) -> Self {
         Self {
             world_name: "empty".to_string(),
-            service
+            service,
         }
     }
 
@@ -36,13 +35,10 @@ impl GzAPI {
         self.service.init();
     }
 
-    pub(super) fn recv_response(
-        &mut self,
-        mut scene_event: EventWriter<SceneEvent>,
-    ) {
+    pub(super) fn recv_response(&mut self, mut scene_event: EventWriter<SceneEvent>) {
         while let Some(response) = self.service.try_recv_response() {
             match response {
-                ServiceResponse::SceneInfo{world_name, result} => {
+                ServiceResponse::SceneInfo { world_name, result } => {
                     if world_name == self.world_name {
                         if let Ok(scene) = result {
                             scene_event.send(SceneEvent::Renew(scene));
@@ -86,14 +82,12 @@ impl GzAPI {
     pub fn set_world_name(&mut self, world_name: &str) {
         self.world_name = world_name.to_string();
 
-        self.service.subscribe(
-            ServiceTopic::DynamicPoseInfo(self.world_name.clone()),
-        );
+        self.service
+            .subscribe(ServiceTopic::DynamicPoseInfo(self.world_name.clone()));
     }
     pub fn init_scene(&mut self) {
         self.service.scene_info(&self.world_name);
     }
-
 }
 
 impl FromWorld for GzAPI {

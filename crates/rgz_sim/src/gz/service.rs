@@ -1,14 +1,14 @@
 use anyhow::Result;
-use bevy::utils::HashMap;
 use bevy::log::error;
 use bevy::prelude::info;
+use bevy::utils::HashMap;
 use regex::Regex;
+use rgz_msgs as msgs;
+use rgz_transport::Node;
 use tokio::runtime;
 use tokio::select;
 use tokio::sync::mpsc;
-use tokio::sync::mpsc::{Sender, Receiver};
-use rgz_transport::Node;
-use rgz_msgs as msgs;
+use tokio::sync::mpsc::{Receiver, Sender};
 
 pub(crate) enum ServiceTopic {
     GazeboResourcePaths,
@@ -64,7 +64,7 @@ impl ServiceTopic {
                 "light_config" => Some(Self::LightConfig(world_name)),
                 _ => None,
             }
-        }else{
+        } else {
             match value {
                 "/clock" => Some(Self::Clock(None)),
                 "/gazebo/resource_paths" => Some(Self::GazeboResourcePaths),
@@ -79,17 +79,40 @@ impl ServiceTopic {
 pub(crate) enum Subscription {
     GuiCameraPose(msgs::Pose),
     GazeboResourcePaths(msgs::StringMsgV),
-    Clock { world_name: Option<String>, clock: msgs::Clock },
-    DynamicPoseInfo { world_name: String, pose_v: msgs::PoseV },
-    PoseInfo { world_name: String, pose_v: msgs::PoseV },
-    SceneDeletion { world_name: String, gz_id: msgs::UInt32V },
-    SceneInfo { world_name: String, scene: msgs::Scene },
-    State { world_name: String, state: msgs::SerializedStepMap },
-    Stats { world_name: Option<String>, stats: msgs::WorldStatistics },
-    LightConfig { world_name: String, light: msgs::Light },
+    Clock {
+        world_name: Option<String>,
+        clock: msgs::Clock,
+    },
+    DynamicPoseInfo {
+        world_name: String,
+        pose_v: msgs::PoseV,
+    },
+    PoseInfo {
+        world_name: String,
+        pose_v: msgs::PoseV,
+    },
+    SceneDeletion {
+        world_name: String,
+        gz_id: msgs::UInt32V,
+    },
+    SceneInfo {
+        world_name: String,
+        scene: msgs::Scene,
+    },
+    State {
+        world_name: String,
+        state: msgs::SerializedStepMap,
+    },
+    Stats {
+        world_name: Option<String>,
+        stats: msgs::WorldStatistics,
+    },
+    LightConfig {
+        world_name: String,
+        light: msgs::Light,
+    },
     Unknown,
 }
-
 
 enum ServiceRequest {
     Subscribe(ServiceTopic),
@@ -97,13 +120,13 @@ enum ServiceRequest {
     SceneInfo(String),
 }
 pub(crate) enum ServiceResponse {
-
-
-    SceneInfo { world_name: String, result: Result<msgs::Scene> },
-
+    SceneInfo {
+        world_name: String,
+        result: Result<msgs::Scene>,
+    },
 }
 
-pub(crate) struct GzService{
+pub(crate) struct GzService {
     runtime: runtime::Handle,
 
     request_sender: Option<Sender<ServiceRequest>>,
@@ -115,10 +138,8 @@ pub(crate) struct GzService{
 
 impl GzService {
     pub(super) fn new(runtime_handle: runtime::Handle) -> Self {
-        let (response_sender, response_receiver)
-            = mpsc::channel(100);
-        let (subscription_sender, subscription_receiver)
-            = mpsc::channel(100);
+        let (response_sender, response_receiver) = mpsc::channel(100);
+        let (subscription_sender, subscription_receiver) = mpsc::channel(100);
 
         Self {
             runtime: runtime_handle,
@@ -160,14 +181,13 @@ impl GzService {
             let _ = request_sender.blocking_send(ServiceRequest::SceneInfo(world_name.to_string()));
         }
     }
-
 }
 async fn service_task(
     mut node: Node,
     mut request_receiver: Receiver<ServiceRequest>,
     response_sender: Sender<ServiceResponse>,
     subscription_sender: Sender<Subscription>,
-){
+) {
     loop {
         select! {
             Some(request) = request_receiver.recv() => {
@@ -196,7 +216,7 @@ async fn service_task(
                                             Ok(())
                                         }
                                     }
-                                ).await;
+                                );
                             }
                             ServiceTopic::PoseInfo(_) => {
                                 let n = topic.name();
@@ -213,7 +233,7 @@ async fn service_task(
                                             Ok(())
                                         }
                                     }
-                                ).await;
+                                );
                             }
                             ServiceTopic::SceneDeletion(_) => {}
                             ServiceTopic::SceneInfo(_) => {}

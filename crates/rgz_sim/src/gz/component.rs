@@ -7,7 +7,6 @@ pub(crate) struct GzId {
     pub(crate) id: u32,
 }
 
-
 #[derive(Component)]
 pub(crate) struct GzScene;
 impl GzScene {

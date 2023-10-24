@@ -13,5 +13,5 @@ pub(crate) fn non_negative_env_var(env_var: &str, default_value: u16) -> u16 {
         }
     } else {
         default_value
-    }
+    };
 }

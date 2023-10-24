@@ -1,8 +1,7 @@
-use std::fmt::{Debug};
-use tokio::sync::mpsc::UnboundedSender;
-use tokio::sync::oneshot;
 use crate::dispatcher::Dispatcher;
 use crate::transport::{ReplyMessage, RequestMessage};
+use std::fmt::Debug;
+use tokio::sync::oneshot;
 
 pub(crate) struct PendingRequest {
     req_uuid: String,
@@ -16,10 +15,7 @@ pub(crate) struct PendingRequest {
 }
 
 impl PendingRequest {
-    pub fn new(
-        request_message: RequestMessage,
-        sender: oneshot::Sender<ReplyMessage>,
-    ) -> Self {
+    pub fn new(request_message: RequestMessage, sender: oneshot::Sender<ReplyMessage>) -> Self {
         PendingRequest {
             req_uuid: request_message.req_uuid.clone(),
             n_uuid: request_message.node_uuid.clone(),
@@ -46,7 +42,6 @@ impl PendingRequest {
     pub fn sender(&mut self) -> Option<oneshot::Sender<ReplyMessage>> {
         self.sender.take()
     }
-
 }
 
 impl Debug for PendingRequest {

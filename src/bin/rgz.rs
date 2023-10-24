@@ -1,4 +1,3 @@
-
 fn main() {
     // App::new()
     //     // plugins are registered as part of the "app building" process
@@ -53,8 +52,3 @@ fn main() {
 //         PanOrbitCamera::default(),
 //     ));
 // }
-
-
-
-
-

@@ -1,15 +1,13 @@
-
-mod store;
 mod discovery;
-mod msg;
+mod types;
+mod store;
 
 pub(crate) use discovery::Discovery;
+pub(crate) use types::*;
 pub(crate) use store::DiscoveryStore;
-pub(crate) use msg::*;
 
-use std::env;
 use anyhow::{bail, Result};
-
+use std::env;
 
 /// Longest string to receive.
 const MAX_RCV_STR: usize = u16::MAX as usize;
@@ -48,19 +46,19 @@ fn discovery_msg_decode(rcv_str: &mut Vec<u8>, received: usize) -> Result<Discov
     if len + 2 == received as u16 {
         if let Ok(msg) = DiscoveryMsg::decode(&rcv_str[2..(len + 2) as usize]) {
             return Ok(msg);
-        }else{
+        } else {
             bail!("Failed to decode Discovery message.");
         }
     }
     bail!("Failed to decode Discovery message.");
 }
 
-fn discovery_msg_encode(msg: &DiscoveryMsg) -> Result<(Vec<u8>, usize)>{
+fn discovery_msg_encode(msg: &DiscoveryMsg) -> Result<(Vec<u8>, usize)> {
     use prost::Message;
 
     // let msg_size_full = std::mem::size_of_val(msg);
     let msg_size_full = msg.encoded_len();
-    if  msg_size_full + std::mem::size_of::<u16>() > MAX_RCV_STR {
+    if msg_size_full + std::mem::size_of::<u16>() > MAX_RCV_STR {
         bail!("Discovery message too large to send. Discovery won't work. This shouldn't happen.");
     }
 
@@ -73,7 +71,7 @@ fn discovery_msg_encode(msg: &DiscoveryMsg) -> Result<(Vec<u8>, usize)>{
     buf.reserve(msg_size_full);
     if msg.encode(&mut buf).is_ok() {
         buffer[2..total_size].copy_from_slice(&buf);
-        return Ok((buffer, total_size))
+        return Ok((buffer, total_size));
     }
 
     bail!("Failed to encode Discovery message.");

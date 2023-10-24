@@ -1,4 +1,4 @@
-use std::cmp::{max};
+use std::cmp::max;
 use std::collections::{HashSet, VecDeque};
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
@@ -6,9 +6,9 @@ use std::thread;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use zmq;
 use anyhow::{bail, Result};
 use tracing::{debug, error, info};
+use zmq;
 
 /// Timeout used for receiving messages (ms.).
 const TIMEOUT: i64 = 250;
@@ -54,7 +54,6 @@ pub(crate) struct ReplyMessage {
     pub data: Vec<u8>,
     pub result: bool,
 }
-
 
 struct SubscribeEvent {
     connect: Option<String>,
@@ -103,7 +102,7 @@ impl Transporter {
 
         let publisher_address = match publisher.get_last_endpoint() {
             Ok(Ok(endpoint)) => endpoint,
-            _ => "".to_string()
+            _ => "".to_string(),
         };
         let requester = context.socket(zmq::ROUTER).unwrap();
         requester.set_linger(linger_val).unwrap();
@@ -134,30 +133,33 @@ impl Transporter {
     }
 
     pub(crate) fn publisher_address(&self) -> String {
-       self.publisher_address.clone()
+        self.publisher_address.clone()
     }
 
     pub(crate) fn replier_address(&self) -> String {
-       self.replier_address.lock().unwrap().clone()
+        self.replier_address.lock().unwrap().clone()
     }
     pub(crate) fn replier_id(&self) -> String {
         self.replier_id.clone()
     }
 
-    pub(crate) fn subscribe(&self,
-                            connect: Option<&str>,
-                            disconnect: Option<&str>,
-                            subscribe_topic: Option<&str>,
-                            unsubscribe_topic: Option<&str>)
-    {
+    pub(crate) fn subscribe(
+        &self,
+        connect: Option<&str>,
+        disconnect: Option<&str>,
+        subscribe_topic: Option<&str>,
+        unsubscribe_topic: Option<&str>,
+    ) {
         if let Some(event_sender) = self.subscribe_evt_sender.as_ref() {
-            event_sender.send(SubscribeEvent {
-                connect: connect.map(|s| s.to_string()),
-                disconnect: disconnect.map(|s| s.to_string()),
-                subscribe: subscribe_topic.map(|s| s.to_string()),
-                unsubscribe: unsubscribe_topic.map(|s| s.to_string()),
-            }).expect("subscribe failed");
-        }else{
+            event_sender
+                .send(SubscribeEvent {
+                    connect: connect.map(|s| s.to_string()),
+                    disconnect: disconnect.map(|s| s.to_string()),
+                    subscribe: subscribe_topic.map(|s| s.to_string()),
+                    unsubscribe: unsubscribe_topic.map(|s| s.to_string()),
+                })
+                .expect("subscribe failed");
+        } else {
             error!("There is no sender. Transporter may not have started.");
         }
     }
@@ -170,7 +172,7 @@ impl Transporter {
         self.srv_connections.lock().unwrap().remove(address);
     }
 
-    pub(crate) fn publish(&self, publish_message: PublishMessage) -> Result<()>{
+    pub(crate) fn publish(&self, publish_message: PublishMessage) -> Result<()> {
         let messages = {
             vec![
                 zmq::Message::from(&publish_message.topic),
@@ -191,7 +193,7 @@ impl Transporter {
     pub(crate) fn request(&mut self, msg: RequestMessage) -> Result<()> {
         let address = match msg.replier_address {
             Some(address) => address.to_string(),
-            None => bail!("RequestMessage.address is None")
+            None => bail!("RequestMessage.address is None"),
         };
 
         {
@@ -213,7 +215,7 @@ impl Transporter {
             zmq::Message::from(&msg.req_uuid),
             zmq::Message::from(&msg.data),
             zmq::Message::from(&msg.req_type),
-            zmq::Message::from(&msg.res_type)
+            zmq::Message::from(&msg.res_type),
         ];
 
         let mut v = VecDeque::from(messages);
@@ -229,32 +231,43 @@ impl Transporter {
         if let Some(sender) = self.reply_msg_sender.as_ref() {
             sender.send(msg)?;
             Ok(())
-        }else{
+        } else {
             bail!("There is no sender. Transporter may not have started.");
         }
     }
 
     pub(crate) fn set_subscription_handler<F>(&mut self, handler: F)
-        where F: Fn(PublishMessage) + Send + 'static
+    where
+        F: Fn(PublishMessage) + Send + 'static,
     {
-        self.subscription_handler.lock().unwrap().replace(Box::new(handler));
+        self.subscription_handler
+            .lock()
+            .unwrap()
+            .replace(Box::new(handler));
     }
 
     pub(crate) fn set_request_handler<F>(&mut self, handler: F)
-        where F: Fn(RequestMessage) + Send + 'static
+    where
+        F: Fn(RequestMessage) + Send + 'static,
     {
-        self.request_handler.lock().unwrap().replace(Box::new(handler));
+        self.request_handler
+            .lock()
+            .unwrap()
+            .replace(Box::new(handler));
     }
 
     pub(crate) fn set_response_handler<F>(&mut self, handler: F)
-        where F: Fn(ReplyMessage) + Send + 'static
+    where
+        F: Fn(ReplyMessage) + Send + 'static,
     {
-        self.response_handler.lock().unwrap().replace(Box::new(handler));
+        self.response_handler
+            .lock()
+            .unwrap()
+            .replace(Box::new(handler));
     }
 
-    pub(crate) fn start(&mut self){
-        let (subscribe_evt_sender, subscribe_evt_receiver)
-            = mpsc::channel::<SubscribeEvent>();
+    pub(crate) fn start(&mut self) {
+        let (subscribe_evt_sender, subscribe_evt_receiver) = mpsc::channel::<SubscribeEvent>();
         let (rep_msg_snd, reply_msg_receiver) = mpsc::channel::<ReplyMessage>();
         self.subscribe_evt_sender = Some(subscribe_evt_sender.clone());
         self.reply_msg_sender = Some(rep_msg_snd.clone());
@@ -272,7 +285,7 @@ impl Transporter {
         let response_handler = self.response_handler.clone();
 
         thread::spawn(move || {
-            let mut inner= TransporterInner::new(
+            let mut inner = TransporterInner::new(
                 context,
                 &host_addr,
                 &requester_id,
@@ -364,11 +377,15 @@ impl TransporterInner {
 
         subscriber.set_rcvhwm(DEFAULT_RCV_HWM).unwrap();
 
-        response_receiver.set_identity(requester_id.as_bytes()).unwrap();
-        response_receiver.bind(&any_tcp).expect("failed binding response_receiver");
+        response_receiver
+            .set_identity(requester_id.as_bytes())
+            .unwrap();
+        response_receiver
+            .bind(&any_tcp)
+            .expect("failed binding response_receiver");
         let address = match response_receiver.get_last_endpoint() {
             Ok(Ok(endpoint)) => endpoint,
-            _ => "error".to_string()
+            _ => "error".to_string(),
         };
         *requester_address.lock().unwrap() = address.clone();
 
@@ -380,7 +397,7 @@ impl TransporterInner {
         replier.bind(&any_tcp).expect("failed binding replier");
         let address = match replier.get_last_endpoint() {
             Ok(Ok(endpoint)) => endpoint,
-            _ => "".to_string()
+            _ => "".to_string(),
         };
         *replier_address.lock().unwrap() = address.clone();
 
@@ -405,7 +422,7 @@ impl TransporterInner {
         if connections.insert(address.to_string()) {
             self.subscriber.connect(address)?;
             debug!("Connected to [{}] for subscriptions", address);
-        }else {
+        } else {
             debug!("Already connected");
         }
         Ok(())
@@ -429,7 +446,7 @@ impl TransporterInner {
     fn reply(&mut self, msg: ReplyMessage) -> Result<()> {
         let address = match msg.requester_address {
             Some(address) => address.to_string(),
-            None => bail!("ReplyMessage.address is None")
+            None => bail!("ReplyMessage.address is None"),
         };
 
         {
@@ -482,7 +499,6 @@ impl TransporterInner {
     }
 
     fn on_subscribe(&self) -> Result<()> {
-
         let topic = self.subscriber.recv_msg(0)?;
         let address = self.subscriber.recv_msg(0)?;
         let data = self.subscriber.recv_msg(0)?;
@@ -553,18 +569,18 @@ impl TransporterInner {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-    use prost::Message;
     use super::*;
+    use prost::Message;
+    use std::io::Cursor;
 
     const IP: &str = "127.0.0.1";
     const TOPIC: &str = "topic";
 
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Person {
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub name: ::prost::alloc::string::String,
-        #[prost(int32, tag="2")]
+        #[prost(int32, tag = "2")]
         pub id: i32,
     }
 
@@ -585,8 +601,8 @@ mod tests {
 
         tokio::spawn(async move {
             transporter2.start();
-            transporter2.subscribe(Some(&address), None,Some(TOPIC), None);
-            transporter2.set_subscription_handler(move|msg| {
+            transporter2.subscribe(Some(&address), None, Some(TOPIC), None);
+            transporter2.set_subscription_handler(move |msg| {
                 if let Ok(person) = Person::decode(&mut Cursor::new(msg.data)) {
                     check2.lock().unwrap().replace(person);
                 }
@@ -602,12 +618,14 @@ mod tests {
         };
 
         let mut data = person.encode_to_vec();
-        transporter1.publish(PublishMessage {
-            topic: TOPIC.to_string(),
-            publisher_address: my_address.clone(),
-            msg_type: "Person".to_string(),
-            data,
-        }).unwrap();
+        transporter1
+            .publish(PublishMessage {
+                topic: TOPIC.to_string(),
+                publisher_address: my_address.clone(),
+                msg_type: "Person".to_string(),
+                data,
+            })
+            .unwrap();
 
         tokio::time::sleep(Duration::from_millis(100)).await;
         {
@@ -615,7 +633,6 @@ mod tests {
             assert_eq!(person.name, "Alice");
             assert_eq!(person.id, 1234);
         }
-
     }
     #[tokio::test]
     async fn test_req_res() {
@@ -629,12 +646,12 @@ mod tests {
 
         let (tx, mut rx) = mpsc::channel::<ReplyMessage>();
 
-        thread::spawn(move ||{
+        thread::spawn(move || {
             transporter2.start();
-            transporter2.set_request_handler(move|msg| {
+            transporter2.set_request_handler(move |msg| {
                 if let Ok(mut person) = Person::decode(&mut Cursor::new(msg.data)) {
                     person.name = "Bob".to_string();
-                    tx.send(ReplyMessage{
+                    tx.send(ReplyMessage {
                         requester_address: Some(msg.requester_address),
                         requester_id: msg.requester_id,
                         topic: msg.topic,
@@ -642,11 +659,12 @@ mod tests {
                         req_uuid: msg.req_uuid,
                         data: person.encode_to_vec(),
                         result: true,
-                    }).unwrap();
+                    })
+                    .unwrap();
                 }
             });
 
-            if let Ok(msg) = rx.recv(){
+            if let Ok(msg) = rx.recv() {
                 transporter2.reply(msg).unwrap();
             }
             // sleep(Duration::from_millis(1000));
@@ -657,7 +675,7 @@ mod tests {
         let check = Arc::new(Mutex::new(None));
         let check2 = check.clone();
 
-        transporter1.set_response_handler(move|msg| {
+        transporter1.set_response_handler(move |msg| {
             if let Ok(person) = Person::decode(&mut Cursor::new(msg.data)) {
                 check2.lock().unwrap().replace(person);
             }
@@ -669,7 +687,7 @@ mod tests {
         };
 
         let mut data = person.encode_to_vec();
-        if let Err(e) = transporter1.request(RequestMessage{
+        if let Err(e) = transporter1.request(RequestMessage {
             replier_address: Some(replier_address),
             replier_id,
             topic: TOPIC.to_string(),

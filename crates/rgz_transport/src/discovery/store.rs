@@ -1,11 +1,11 @@
-use std::collections::HashMap;
 use anyhow::{anyhow, bail, Result};
+use std::collections::HashMap;
 use tracing::{debug, info};
 
-use crate::discovery::{DiscoveryPublisher, DiscoveryPubType};
+use crate::discovery::{DiscoveryPubType, DiscoveryPublisher};
 
-pub(crate) struct DiscoveryStore{
-    discovery_publishers: HashMap<String, HashMap<String, Vec<DiscoveryPublisher>>>
+pub(crate) struct DiscoveryStore {
+    discovery_publishers: HashMap<String, HashMap<String, Vec<DiscoveryPublisher>>>,
 }
 
 impl DiscoveryStore {
@@ -17,25 +17,30 @@ impl DiscoveryStore {
 
     /// Add a new address associated to a given topic and node UUID.
     pub fn add_publisher(&mut self, discovery_publisher: DiscoveryPublisher) -> Result<()> {
-        let processes =
-            self.discovery_publishers.entry(discovery_publisher.topic.to_string()).or_insert(HashMap::new());
+        let processes = self
+            .discovery_publishers
+            .entry(discovery_publisher.topic.to_string())
+            .or_insert(HashMap::new());
 
         if let Some(publishers) = processes.get(&discovery_publisher.process_uuid) {
-            if publishers.iter().any(|p| p.address == discovery_publisher.address
-                && p.node_uuid == discovery_publisher.node_uuid)
-            {
+            if publishers.iter().any(|p| {
+                p.address == discovery_publisher.address
+                    && p.node_uuid == discovery_publisher.node_uuid
+            }) {
                 bail!("Publisher already exists");
             }
         }
-        processes.entry(discovery_publisher.process_uuid.to_string())
-            .or_insert_with(Vec::new).push(discovery_publisher);
+        processes
+            .entry(discovery_publisher.process_uuid.to_string())
+            .or_insert_with(Vec::new)
+            .push(discovery_publisher);
 
         Ok(())
     }
     /// Remove a publisher associated to a given topic and UUID pair.
     pub fn del_publisher_by_node(&mut self, topic: &str, p_uuid: &str, n_uuid: &str) -> Result<()> {
-        if let Some(processes) = self.discovery_publishers.get_mut(topic){
-            if let Some(publishers) = processes.get_mut(p_uuid){
+        if let Some(processes) = self.discovery_publishers.get_mut(topic) {
+            if let Some(publishers) = processes.get_mut(p_uuid) {
                 if !publishers.iter().any(|p| p.node_uuid == n_uuid) {
                     bail!("Publisher not found");
                 }
@@ -81,22 +86,18 @@ impl DiscoveryStore {
     /// Return if there is any publisher stored for the given topic and type.
     pub fn has_topic_and_msg_type(&self, topic: &str, msg_type: &str) -> bool {
         match self.discovery_publishers.get(topic) {
-            Some(processes) => {
-                processes.values().any(|v| {
-                    v.iter().any(|p| {
-                        p.pub_type
-                            .as_ref()
-                            .map(|pub_type| match pub_type {
-                                DiscoveryPubType::MsgPub(publisher) => {
-                                    publisher.msg_type == msg_type
-                                }
-                                _ => false,
-                            })
-                            .unwrap_or(false)
-                    })
+            Some(processes) => processes.values().any(|v| {
+                v.iter().any(|p| {
+                    p.pub_type
+                        .as_ref()
+                        .map(|pub_type| match pub_type {
+                            DiscoveryPubType::MsgPub(publisher) => publisher.msg_type == msg_type,
+                            _ => false,
+                        })
+                        .unwrap_or(false)
                 })
-            },
-            None => false
+            }),
+            None => false,
         }
     }
 
@@ -104,109 +105,102 @@ impl DiscoveryStore {
     pub fn has_any_publishers(&self, topic: &str, p_uuid: &str) -> bool {
         match self.discovery_publishers.get(topic) {
             Some(publishers) => publishers.contains_key(p_uuid),
-            None => false
+            None => false,
         }
     }
 
     /// Return if the requested publisher's address is stored.
     pub fn has_publisher(&self, addr: &str) -> bool {
-        self.discovery_publishers.values().any(|v| {
-            v.values().any(|v| {
-                v.iter().any(|p| p.address == addr)
-            })
-        })
+        self.discovery_publishers
+            .values()
+            .any(|v| v.values().any(|v| v.iter().any(|p| p.address == addr)))
     }
 
     /// Get the address information for a given topic and node UUID.
-    pub fn publisher(&self, topic: &str, p_uuid: &str, n_uuid: &str) -> Option<&DiscoveryPublisher> {
+    pub fn publisher(
+        &self,
+        topic: &str,
+        p_uuid: &str,
+        n_uuid: &str,
+    ) -> Option<&DiscoveryPublisher> {
         match self.discovery_publishers.get(topic) {
-            Some(publishers) => {
-                match publishers.get(p_uuid) {
-                    Some(publishers) => {
-                        publishers.iter().find(|p| p.node_uuid == n_uuid)
-                    },
-                    None => None
-                }
+            Some(publishers) => match publishers.get(p_uuid) {
+                Some(publishers) => publishers.iter().find(|p| p.node_uuid == n_uuid),
+                None => None,
             },
-            None => None
+            None => None,
         }
     }
 
-    pub fn publishers(&self, topic: Option<&str>, p_uuid: Option<&str>, n_uuid: Option<&str>)
-        -> Vec<&DiscoveryPublisher>
-    {
+    pub fn publishers(
+        &self,
+        topic: Option<&str>,
+        p_uuid: Option<&str>,
+        n_uuid: Option<&str>,
+    ) -> Vec<&DiscoveryPublisher> {
         match (topic.is_some(), p_uuid.is_some(), n_uuid.is_some()) {
-            (true, true, true) => {
-                self.publisher(topic.unwrap(), p_uuid.unwrap(), n_uuid.unwrap())
-                    .map(|p| vec![p]).unwrap_or(vec![])
+            (true, true, true) => self
+                .publisher(topic.unwrap(), p_uuid.unwrap(), n_uuid.unwrap())
+                .map(|p| vec![p])
+                .unwrap_or(vec![]),
+            (true, true, false) => match self.discovery_publishers.get(topic.unwrap()) {
+                Some(process) => process
+                    .get(p_uuid.unwrap())
+                    .map(|p| p.iter().collect())
+                    .unwrap_or(vec![]),
+                None => vec![],
             },
-            (true, true, false) => {
-                match self.discovery_publishers.get(topic.unwrap()) {
-                    Some(process) => {
-                        process.get(p_uuid.unwrap())
-                            .map(|p| p.iter().collect()).unwrap_or(vec![])
-                    },
-                    None => vec![]
-                }
-            },
-            (true, false, false) => {
-                self.publishers_by_topic(topic.unwrap())
-            },
-            (true, false, true) => {
-                match self.discovery_publishers.get(topic.unwrap()) {
-                    Some(process) => {
-                        process.values()
-                            .flat_map(|p| p.iter())
-                            .filter(|p| p.node_uuid == n_uuid.unwrap())
-                            .collect()
-                    },
-                    None => vec![]
-                }
-            },
-            (false, true, false) => {
-                self.publishers_by_process(p_uuid.unwrap())
-            },
-            (false, true, true) => {
-                self.publishers_by_node(p_uuid.unwrap(), n_uuid.unwrap())
-            },
-            (false, false, true) => {
-                self.discovery_publishers.values()
-                    .flat_map(|p| p.values())
-                    .flatten()
+            (true, false, false) => self.publishers_by_topic(topic.unwrap()),
+            (true, false, true) => match self.discovery_publishers.get(topic.unwrap()) {
+                Some(process) => process
+                    .values()
+                    .flat_map(|p| p.iter())
                     .filter(|p| p.node_uuid == n_uuid.unwrap())
-                    .collect()
+                    .collect(),
+                None => vec![],
             },
-            (false, false, false) => {
-                self.discovery_publishers.values()
-                    .flat_map(|p| p.values())
-                    .flatten().collect()
-            }
+            (false, true, false) => self.publishers_by_process(p_uuid.unwrap()),
+            (false, true, true) => self.publishers_by_node(p_uuid.unwrap(), n_uuid.unwrap()),
+            (false, false, true) => self
+                .discovery_publishers
+                .values()
+                .flat_map(|p| p.values())
+                .flatten()
+                .filter(|p| p.node_uuid == n_uuid.unwrap())
+                .collect(),
+            (false, false, false) => self
+                .discovery_publishers
+                .values()
+                .flat_map(|p| p.values())
+                .flatten()
+                .collect(),
         }
     }
 
     /// Get the map of publishers stored for a given topic.
     pub fn publishers_by_topic(&self, topic: &str) -> Vec<&DiscoveryPublisher> {
         match self.discovery_publishers.get(topic) {
-            Some(publishers) => {
-                publishers.values().flatten().collect()
-            },
-            None => vec![]
+            Some(publishers) => publishers.values().flatten().collect(),
+            None => vec![],
         }
     }
 
     /// Given a process UUID, the function returns the list of
     /// publishers contained in this process UUID with its address information
     pub fn publishers_by_process(&self, p_uuid: &str) -> Vec<&DiscoveryPublisher> {
-        self.discovery_publishers.values()
-            .flat_map(|process|process.get(p_uuid))
-            .flatten().collect()
+        self.discovery_publishers
+            .values()
+            .flat_map(|process| process.get(p_uuid))
+            .flatten()
+            .collect()
     }
 
     /// Given a process UUID and the node UUID, the function returns
     /// the list of publishers contained in the node.
     pub fn publishers_by_node(&self, p_uuid: &str, n_uuid: &str) -> Vec<&DiscoveryPublisher> {
-        self.discovery_publishers.values()
-            .flat_map(|process|process.get(p_uuid))
+        self.discovery_publishers
+            .values()
+            .flat_map(|process| process.get(p_uuid))
             .flatten()
             .filter(|p| p.node_uuid == n_uuid)
             .collect()
@@ -214,7 +208,10 @@ impl DiscoveryStore {
 
     /// Get the list of topics currently stored.
     pub fn topic_list(&self) -> Vec<&str> {
-        self.discovery_publishers.keys().map(|k| k.as_str()).collect()
+        self.discovery_publishers
+            .keys()
+            .map(|k| k.as_str())
+            .collect()
     }
 
     /// Print all the information for debugging purposes.
@@ -243,7 +240,6 @@ impl DiscoveryStore {
                     println!("\t\tthrottled: {}", msg_pub.throttled);
                     println!("\t\tmsgs_per_sec: {}", msg_pub.msgs_per_sec);
                     println!("\t\tmsg_type: {}", msg_pub.msg_type);
-
                 }
                 DiscoveryPubType::SrvPub(srv_pub) => {
                     println!("\tpub_type: SrvPub:");
@@ -256,16 +252,19 @@ impl DiscoveryStore {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::discovery::{DiscoveryMsgPublisher, DiscoveryScope};
     use super::*;
+    use crate::discovery::{DiscoveryMsgPublisher, DiscoveryScope};
 
-    fn create_msg_publisher(topic: &str, addr: &str, p_uuid: &str, n_uuid: &str,
-                  scope: DiscoveryScope,
-                  msg_type: &str) -> DiscoveryPublisher
-    {
+    fn create_msg_publisher(
+        topic: &str,
+        addr: &str,
+        p_uuid: &str,
+        n_uuid: &str,
+        scope: DiscoveryScope,
+        msg_type: &str,
+    ) -> DiscoveryPublisher {
         DiscoveryPublisher {
             topic: topic.to_string(),
             address: addr.to_string(),
@@ -277,16 +276,21 @@ mod tests {
                 throttled: false,
                 msgs_per_sec: 0,
                 msg_type: msg_type.to_string(),
-            }))
+            })),
         }
     }
 
     #[test]
     fn test_add_publisher() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         let check = store.add_publisher(pub1.clone());
         assert_eq!(check.unwrap(), ());
@@ -296,11 +300,16 @@ mod tests {
     }
 
     #[test]
-    fn test_has_topic(){
+    fn test_has_topic() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
 
@@ -309,11 +318,16 @@ mod tests {
     }
 
     #[test]
-    fn test_has_topic_and_msg_type(){
+    fn test_has_topic_and_msg_type() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         let result = store.has_topic_and_msg_type("topic1", "gz.msgs.StringMsg");
@@ -321,11 +335,16 @@ mod tests {
     }
 
     #[test]
-    fn test_has_any_publishers(){
+    fn test_has_any_publishers() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         assert_eq!(store.has_any_publishers("topic1", "p_uuid1"), true);
@@ -333,11 +352,16 @@ mod tests {
     }
 
     #[test]
-    fn test_has_publisher(){
+    fn test_has_publisher() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
         store.add_publisher(pub1.clone()).unwrap();
         assert_eq!(store.has_publisher("addr1"), true);
         assert_eq!(store.has_publisher("addr2"), false);
@@ -346,9 +370,14 @@ mod tests {
     #[test]
     fn test_publisher() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
         store.add_publisher(pub1.clone()).unwrap();
 
         let pub2 = store.publisher("topic1", "p_uuid1", "n_uuid1");
@@ -358,14 +387,24 @@ mod tests {
     #[test]
     fn test_publishers() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
         store.add_publisher(pub1.clone()).unwrap();
 
-        let pub2 = create_msg_publisher("topic2",
-                                        "addr2", "p_uuid2",
-                                        "n_uuid2", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub2 = create_msg_publisher(
+            "topic2",
+            "addr2",
+            "p_uuid2",
+            "n_uuid2",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
         store.add_publisher(pub2.clone()).unwrap();
 
         let mut publisher = store.publishers(Some("topic1"), Some("p_uuid1"), Some("n_uuid1"));
@@ -387,20 +426,34 @@ mod tests {
     }
 
     #[test]
-    fn test_del_publisher_by_node(){
+    fn test_del_publisher_by_node() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub2 = create_msg_publisher("topic2",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub2 = create_msg_publisher(
+            "topic2",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub3 = create_msg_publisher("topic1",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid2", DiscoveryScope::All, "gz.msgs.StringMsg");
-
+        let pub3 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid2",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         store.add_publisher(pub2.clone()).unwrap();
@@ -420,19 +473,34 @@ mod tests {
     }
 
     #[test]
-    fn test_del_publisher_by_process(){
+    fn test_del_publisher_by_process() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub2 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid2", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub2 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid2",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub3 = create_msg_publisher("topic2",
-                              "addr1", "p_uuid2",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub3 = create_msg_publisher(
+            "topic2",
+            "addr1",
+            "p_uuid2",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         store.add_publisher(pub2.clone()).unwrap();
@@ -455,15 +523,25 @@ mod tests {
     }
 
     #[test]
-    fn test_publishers_by_process(){
+    fn test_publishers_by_process() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub2 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid2",
-                              "n_uuid2", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub2 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid2",
+            "n_uuid2",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         store.add_publisher(pub2.clone()).unwrap();
@@ -479,15 +557,25 @@ mod tests {
     }
 
     #[test]
-    fn test_publishers_by_node(){
+    fn test_publishers_by_node() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub2 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid2", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub2 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid2",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         store.add_publisher(pub2.clone()).unwrap();
@@ -503,15 +591,25 @@ mod tests {
     }
 
     #[test]
-    fn test_topic_list(){
+    fn test_topic_list() {
         let mut store = DiscoveryStore::new();
-        let pub1 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub2 = create_msg_publisher("topic2",
-                              "addr1", "p_uuid1",
-                              "n_uuid2", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub2 = create_msg_publisher(
+            "topic2",
+            "addr1",
+            "p_uuid1",
+            "n_uuid2",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         store.add_publisher(pub2.clone()).unwrap();
@@ -521,21 +619,36 @@ mod tests {
     }
 
     #[test]
-    fn test_print(){
+    fn test_print() {
         let store = DiscoveryStore::new();
 
-        let pub1 = create_msg_publisher("topic1",
-                              "addr1", "p_uuid1",
-                              "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub1 = create_msg_publisher(
+            "topic1",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         let mut store = DiscoveryStore::new();
-        let pub2 = create_msg_publisher("topic2",
-                              "addr2", "p_uuid2",
-                              "n_uuid2", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub2 = create_msg_publisher(
+            "topic2",
+            "addr2",
+            "p_uuid2",
+            "n_uuid2",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
-        let pub3 = create_msg_publisher("topic3",
-                                        "addr1", "p_uuid1",
-                                        "n_uuid1", DiscoveryScope::All, "gz.msgs.StringMsg");
+        let pub3 = create_msg_publisher(
+            "topic3",
+            "addr1",
+            "p_uuid1",
+            "n_uuid1",
+            DiscoveryScope::All,
+            "gz.msgs.StringMsg",
+        );
 
         store.add_publisher(pub1.clone()).unwrap();
         store.add_publisher(pub3.clone()).unwrap();
@@ -543,5 +656,4 @@ mod tests {
 
         store.print();
     }
-
 }

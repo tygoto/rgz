@@ -1,5 +1,5 @@
-use regex::Regex;
 use anyhow::{bail, Result};
+use regex::Regex;
 
 const MAX_NAME_LENGTH: usize = u16::MAX as usize;
 
@@ -58,10 +58,7 @@ pub(crate) fn is_valid_topic(topic: &str) -> bool {
 
 pub(crate) fn fully_qualified_name(partition: &str, ns: &str, topic: &str) -> Result<String> {
     // Sanity check, first things first.
-    if !is_valid_partition(partition)
-        || !is_valid_namespace(ns)
-        || !is_valid_topic(topic)
-    {
+    if !is_valid_partition(partition) || !is_valid_namespace(ns) || !is_valid_topic(topic) {
         bail!("Invalid partition, namespace or topic");
     }
 
@@ -114,14 +111,11 @@ pub(crate) fn fully_qualified_name(partition: &str, ns: &str, topic: &str) -> Re
     Ok(name)
 }
 
-fn decompose_fully_qualified_topic(fully_qualified_name: &str, ) -> Result<(String, String)> {
-
+fn decompose_fully_qualified_topic(fully_qualified_name: &str) -> Result<(String, String)> {
     let first_at = fully_qualified_name.find('@');
     let last_at = fully_qualified_name.rfind('@');
 
-    if first_at != Some(0)
-        || first_at == last_at
-        || last_at == Some(fully_qualified_name.len() - 1)
+    if first_at != Some(0) || first_at == last_at || last_at == Some(fully_qualified_name.len() - 1)
     {
         bail!("Invalid fully qualified name");
     }
@@ -156,7 +150,6 @@ fn as_valid_topic(topic: &str) -> Result<String> {
     Ok(valid_topic)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,17 +163,19 @@ mod tests {
     }
 
     #[test]
-    fn test_fully_qualified_name () {
+    fn test_fully_qualified_name() {
         let partition = "my_partition";
         let ns = "/example/namespace";
         let topic = "my_topic";
 
-        assert_eq!("@/my_partition@/example/namespace/my_topic",
-                   fully_qualified_name(partition, ns, topic).unwrap());
+        assert_eq!(
+            "@/my_partition@/example/namespace/my_topic",
+            fully_qualified_name(partition, ns, topic).unwrap()
+        );
     }
 
     #[test]
-    fn test_decompose_fully_qualified_topic(){
+    fn test_decompose_fully_qualified_topic() {
         let fully_qualified_name = "@my_partition@/example/namespace/my_topic";
         let (partition, namespace_and_topic) =
             decompose_fully_qualified_topic(fully_qualified_name).unwrap();
@@ -190,7 +185,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_valid_topic(){
+    fn test_as_valid_topic() {
         let namespace_and_topic = "//example/namespace/my topic";
         let valid_topic = as_valid_topic(&namespace_and_topic).unwrap();
 

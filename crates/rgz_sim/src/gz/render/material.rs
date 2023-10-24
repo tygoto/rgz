@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use rgz_msgs as msgs;
 
-pub(crate) fn material(
-    material: Option<&msgs::Material>
-) -> StandardMaterial {
-
+pub(crate) fn material(material: Option<&msgs::Material>) -> StandardMaterial {
     if let Some(material) = material {
         // StandardMaterial {
         //     base_color: Color::rgba(0.5, 0.5, 0.5, 0.3),
@@ -38,9 +35,7 @@ pub(crate) fn material(
             },
             ..default()
         }
-    }else{
-        StandardMaterial {
-            ..default()
-        }
+    } else {
+        StandardMaterial { ..default() }
     }
 }

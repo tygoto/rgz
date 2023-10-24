@@ -1,15 +1,14 @@
-
+mod node;
 mod options;
 mod shared;
-mod node;
 
+pub use node::{Node, Publisher};
+pub use options::{AdvertiseOptions, NodeOptions};
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::oneshot;
-pub use options::{AdvertiseOptions, NodeOptions};
-pub use node::{Node, Publisher};
 
 use crate::discovery::DiscoveryPublisher;
-use crate::transport::{PublishMessage, RequestMessage, ReplyMessage};
+use crate::transport::{PublishMessage, ReplyMessage, RequestMessage};
 
 const DEFAULT_DISCOVERY_IP: &str = "239.255.0.7";
 const DEFAULT_MSG_DISC_PORT: u16 = 10317;

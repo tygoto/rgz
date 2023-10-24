@@ -1,22 +1,29 @@
-use std::collections::HashMap;
-use std::{env, process};
-use std::sync::{Arc, Mutex};
 use std::borrow::BorrowMut;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::{env, process};
 
 use anyhow::{bail, Result};
 use once_cell::sync::Lazy;
 use tokio::select;
-use tokio::sync::{oneshot};
-use tokio::sync::mpsc::{self, UnboundedSender, UnboundedReceiver};
+
+use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+use tokio::sync::oneshot;
+
 use tracing::{debug, error, info, trace};
 
-
-use crate::discovery::{Discovery, DiscoveryStore, DiscoveryPublisher, DiscoveryPubType,
-                       DiscoveryMsgPublisher, DiscoverySrvPublisher};
-use crate::dispatcher::{Dispatcher, DispatcherStore, DeleteFunction, CleanFunction,
-                        PendingRequest, ResponseDispatcher, ServiceDispatcher, Subscriber};
-use crate::node::{DEFAULT_DISCOVERY_IP, DEFAULT_MSG_DISC_PORT, DEFAULT_SRV_DISC_PORT,
-                  NodeEvent, SubscribeArgs, TransportEvent};
+use crate::discovery::{
+    Discovery, DiscoveryMsgPublisher, DiscoveryPubType, DiscoveryPublisher, DiscoverySrvPublisher,
+    DiscoveryStore,
+};
+use crate::dispatcher::{
+    CleanFunction, DeleteFunction, Dispatcher, DispatcherStore, PendingRequest, ResponseDispatcher,
+    ServiceDispatcher, Subscriber,
+};
+use crate::node::{
+    NodeEvent, SubscribeArgs, TransportEvent, DEFAULT_DISCOVERY_IP, DEFAULT_MSG_DISC_PORT,
+    DEFAULT_SRV_DISC_PORT,
+};
 use crate::transport::{PublishMessage, ReplyMessage, RequestMessage, Transporter};
 use crate::utils::env as env_utils;
 
@@ -56,7 +63,7 @@ impl NodeShared {
             let new_node_shared = Arc::new(Mutex::new(new_node_shared));
             node_shared_map.insert(pid, new_node_shared.clone());
             new_node_shared
-        }
+        };
     }
     fn new() -> Self {
         let mut verbose = false;
@@ -75,11 +82,11 @@ impl NodeShared {
             }
         }
         // Set the port used for msg discovery.
-        let msg_disc_port
-            = env_utils::non_negative_env_var("GZ_DISCOVERY_MSG_PORT", DEFAULT_MSG_DISC_PORT);
+        let msg_disc_port =
+            env_utils::non_negative_env_var("GZ_DISCOVERY_MSG_PORT", DEFAULT_MSG_DISC_PORT);
         // Set the port used for srv discovery.
-        let mut srv_disc_port
-            = env_utils::non_negative_env_var("GZ_DISCOVERY_SRV_PORT", DEFAULT_SRV_DISC_PORT);
+        let mut srv_disc_port =
+            env_utils::non_negative_env_var("GZ_DISCOVERY_SRV_PORT", DEFAULT_SRV_DISC_PORT);
 
         // Sanity check: the discovery ports should be unique.
         if msg_disc_port == srv_disc_port {
@@ -106,8 +113,13 @@ impl NodeShared {
         }
     }
     fn start(&mut self) {
-        let mut inner = NodeSharedInner::new(&self.p_uuid, &self.discovery_ip,
-                                             self.msg_disc_port, self.srv_disc_port, self.verbose);
+        let mut inner = NodeSharedInner::new(
+            &self.p_uuid,
+            &self.discovery_ip,
+            self.msg_disc_port,
+            self.srv_disc_port,
+            self.verbose,
+        );
         let node_event_sender = inner.node_event_sender();
         self.node_event_sender = Some(node_event_sender);
 
@@ -116,9 +128,10 @@ impl NodeShared {
         });
         self.handle = Some(handle);
     }
-    pub(crate) fn advertise(&mut self, discovery_publisher: DiscoveryPublisher)
-        -> Result<UnboundedSender<NodeEvent>>
-    {
+    pub(crate) fn advertise(
+        &mut self,
+        discovery_publisher: DiscoveryPublisher,
+    ) -> Result<UnboundedSender<NodeEvent>> {
         match self.node_event_sender.as_ref() {
             None => bail!("Node is not started"),
             Some(node_event_sender) => {
@@ -130,19 +143,20 @@ impl NodeShared {
     pub(crate) fn advertise_service(
         &mut self,
         discovery_publisher: DiscoveryPublisher,
-        request_sender: UnboundedSender<RequestMessage>
-    ) -> Result<UnboundedSender<NodeEvent>>
-    {
+        request_sender: UnboundedSender<RequestMessage>,
+    ) -> Result<UnboundedSender<NodeEvent>> {
         match self.node_event_sender.as_ref() {
             None => bail!("Node is not started"),
             Some(node_event_sender) => {
-                node_event_sender.send(NodeEvent::AdvertiseService(discovery_publisher, request_sender))?;
+                node_event_sender.send(NodeEvent::AdvertiseService(
+                    discovery_publisher,
+                    request_sender,
+                ))?;
                 Ok(node_event_sender.clone())
             }
         }
     }
-    pub(crate) fn subscribe(&mut self, args: SubscribeArgs) -> Result<()>
-    {
+    pub(crate) fn subscribe(&mut self, args: SubscribeArgs) -> Result<()> {
         match self.node_event_sender.as_ref() {
             None => bail!("Node is not started"),
             Some(node_event_sender) => {
@@ -151,7 +165,10 @@ impl NodeShared {
             }
         }
     }
-    pub(crate) fn request(&mut self, msg: RequestMessage) -> Result<oneshot::Receiver<ReplyMessage>> {
+    pub(crate) fn request(
+        &mut self,
+        msg: RequestMessage,
+    ) -> Result<oneshot::Receiver<ReplyMessage>> {
         match self.node_event_sender.as_ref() {
             None => bail!("Node is not started"),
             Some(node_event_sender) => {
@@ -173,7 +190,6 @@ impl Drop for NodeShared {
         }
     }
 }
-
 
 struct NodeSharedInner {
     p_uuid: String,
@@ -203,13 +219,11 @@ impl NodeSharedInner {
         discovery_ip: &str,
         msg_disc_port: u16,
         srv_disc_port: u16,
-        verbose: bool
+        verbose: bool,
     ) -> Self {
-
         let (discovery_event_sender, discovery_event_receiver) =
             mpsc::unbounded_channel::<DiscoveryEvent>();
-        let (node_event_sender, node_event_receiver) =
-            mpsc::unbounded_channel::<NodeEvent>();
+        let (node_event_sender, node_event_receiver) = mpsc::unbounded_channel::<NodeEvent>();
         let (transport_event_sender, transport_event_receiver) =
             mpsc::unbounded_channel::<TransportEvent>();
 
@@ -217,46 +231,58 @@ impl NodeSharedInner {
         let mut msg_discovery = Discovery::new(p_uuid, discovery_ip, msg_disc_port, verbose);
 
         let sender = discovery_event_sender.clone();
-        msg_discovery.set_connection_cb(move|discovery_publisher| {
-            sender.send(DiscoveryEvent::Connection(discovery_publisher)).unwrap();
+        msg_discovery.set_connection_cb(move |discovery_publisher| {
+            sender
+                .send(DiscoveryEvent::Connection(discovery_publisher))
+                .unwrap();
         });
         let sender = discovery_event_sender.clone();
-        msg_discovery.set_disconnection_cb(move|discovery_publisher| {
-            sender.send(DiscoveryEvent::Disconnection(discovery_publisher)).unwrap();
+        msg_discovery.set_disconnection_cb(move |discovery_publisher| {
+            sender
+                .send(DiscoveryEvent::Disconnection(discovery_publisher))
+                .unwrap();
         });
         let sender = discovery_event_sender.clone();
-        msg_discovery.set_registration_cb(move|discovery_publisher| {
-            sender.send(DiscoveryEvent::Registration(discovery_publisher)).unwrap();
+        msg_discovery.set_registration_cb(move |discovery_publisher| {
+            sender
+                .send(DiscoveryEvent::Registration(discovery_publisher))
+                .unwrap();
         });
         let sender = discovery_event_sender.clone();
-        msg_discovery.set_unregistration_cb(move|discovery_publisher| {
-            sender.send(DiscoveryEvent::Unregistration(discovery_publisher)).unwrap();
+        msg_discovery.set_unregistration_cb(move |discovery_publisher| {
+            sender
+                .send(DiscoveryEvent::Unregistration(discovery_publisher))
+                .unwrap();
         });
 
         // srv discovery
         let mut srv_discovery = Discovery::new(p_uuid, discovery_ip, srv_disc_port, verbose);
         let sender = discovery_event_sender.clone();
-        srv_discovery.set_connection_cb(move|discovery_publisher| {
-            sender.send(DiscoveryEvent::SrvConnection(discovery_publisher)).unwrap();
+        srv_discovery.set_connection_cb(move |discovery_publisher| {
+            sender
+                .send(DiscoveryEvent::SrvConnection(discovery_publisher))
+                .unwrap();
         });
         let sender = discovery_event_sender.clone();
-        srv_discovery.set_disconnection_cb(move|discovery_publisher| {
-            sender.send(DiscoveryEvent::SrvDisconnection(discovery_publisher)).unwrap();
+        srv_discovery.set_disconnection_cb(move |discovery_publisher| {
+            sender
+                .send(DiscoveryEvent::SrvDisconnection(discovery_publisher))
+                .unwrap();
         });
 
         // transporter
         let host_addr = msg_discovery.host_addr().to_string();
         let mut transporter = Transporter::new(&host_addr);
         let sender = transport_event_sender.clone();
-        transporter.set_subscription_handler(move|msg| {
+        transporter.set_subscription_handler(move |msg| {
             sender.send(TransportEvent::Subscription(msg)).unwrap();
         });
         let sender = transport_event_sender.clone();
-        transporter.set_request_handler(move|msg| {
+        transporter.set_request_handler(move |msg| {
             sender.send(TransportEvent::Request(msg)).unwrap();
         });
         let sender = transport_event_sender.clone();
-        transporter.set_response_handler(move|msg| {
+        transporter.set_response_handler(move |msg| {
             sender.send(TransportEvent::Response(msg)).unwrap();
         });
 
@@ -375,8 +401,8 @@ impl NodeSharedInner {
         }
 
         // Subscribe to the topic.
-        self.transporter.subscribe(Some(&address), None,
-                                   Some(&topic), None);
+        self.transporter
+            .subscribe(Some(&address), None, Some(&topic), None);
 
         // Create a new publisher.
         let message_publisher = match discovery_publisher.pub_type {
@@ -387,7 +413,7 @@ impl NodeSharedInner {
         discovery_publisher.process_uuid = self.p_uuid.clone();
 
         // Register the new publisher.
-        if let Some(subscribers) = self.subscribers.get_for_topic(&topic){
+        if let Some(subscribers) = self.subscribers.get_for_topic(&topic) {
             for s in subscribers {
                 let mut p = discovery_publisher.clone();
                 p.node_uuid = s.node_uuid().to_string();
@@ -396,7 +422,6 @@ impl NodeSharedInner {
                 }
             }
         }
-
     }
     fn on_disconnection(&mut self, discovery_publisher: DiscoveryPublisher) {
         trace!("on_disconnection");
@@ -411,7 +436,7 @@ impl NodeSharedInner {
         // A remote subscriber[s] has been disconnected.
         if topic != "" && node_uuid != "" {
             let _ = self.subscribers.remove_by_node(topic, node_uuid);
-        }else {
+        } else {
             self.subscribers.del_by_process(process_uuid);
         }
     }
@@ -438,13 +463,7 @@ impl NodeSharedInner {
             println!("\tNode UUID: {}", node_uuid);
         }
 
-        let subscriber = Subscriber::new(
-            process_uuid,
-            node_uuid,
-            topic,
-            msg_type,
-            None
-        );
+        let subscriber = Subscriber::new(process_uuid, node_uuid, topic, msg_type, None);
         if let Err(err) = self.subscribers.register(subscriber) {
             error!("Failed to register dispatcher: {}", err);
         }
@@ -491,7 +510,13 @@ impl NodeSharedInner {
             DiscoveryStore::print_publisher(&discovery_publisher);
         }
 
-        self.send_pending_remote_reqs(&topic, request_type, response_type, replier_address, replier_id);
+        self.send_pending_remote_reqs(
+            &topic,
+            request_type,
+            response_type,
+            replier_address,
+            replier_id,
+        );
     }
     fn on_srv_disconnection(&self, discovery_publisher: DiscoveryPublisher) {
         trace!("on_srv_disconnection");
@@ -514,9 +539,11 @@ impl NodeSharedInner {
             error!("Failed to advertise: {}", err);
         }
     }
-    fn on_advertise_service(&mut self, mut discovery_publisher: DiscoveryPublisher,
-                            request_sender: UnboundedSender<RequestMessage>)
-    {
+    fn on_advertise_service(
+        &mut self,
+        mut discovery_publisher: DiscoveryPublisher,
+        request_sender: UnboundedSender<RequestMessage>,
+    ) {
         trace!("on_advertise_service");
         let service_publisher = match discovery_publisher.pub_type {
             Some(DiscoveryPubType::SrvPub(ref mut srv_pub)) => srv_pub,
@@ -554,13 +581,7 @@ impl NodeSharedInner {
         let topic = args.topic.as_str();
         let msg_type = args.msg_type.as_str();
         let sender = Some(args.sender.clone());
-        let subscriber = Subscriber::new(
-            process_uuid,
-            node_uuid,
-            topic,
-            msg_type,
-            sender
-        );
+        let subscriber = Subscriber::new(process_uuid, node_uuid, topic, msg_type, sender);
         if let Err(err) = self.subscribers.register(subscriber) {
             error!("Failed to register subscriber: {}", err);
         }
@@ -571,8 +592,9 @@ impl NodeSharedInner {
     fn on_publish(&mut self, msg: PublishMessage) {
         trace!("on_publish {:?}", msg);
 
-        if let Some(dispatchers) = self.subscribers.filter(
-            &msg.topic, Some(&msg.msg_type), None)
+        if let Some(dispatchers) = self
+            .subscribers
+            .filter(&msg.topic, Some(&msg.msg_type), None)
         {
             for mut dispatcher in dispatchers {
                 let publish_message = msg.clone();
@@ -581,14 +603,20 @@ impl NodeSharedInner {
                     if let Err(err) = self.transporter.publish(publish_message) {
                         error!("Failed to publish: {}", err);
                     }
-                }else {
+                } else {
                     // Send the message to the local subscriber.
-                    dispatcher.dispatch(publish_message).expect("Failed to dispatch message");
+                    dispatcher
+                        .dispatch(publish_message)
+                        .expect("Failed to dispatch message");
                 }
             }
         }
     }
-    fn on_request(&mut self, mut request_message: RequestMessage, sender: oneshot::Sender<ReplyMessage>) {
+    fn on_request(
+        &mut self,
+        mut request_message: RequestMessage,
+        sender: oneshot::Sender<ReplyMessage>,
+    ) {
         trace!("on_request {:?}", request_message);
         request_message.req_uuid = uuid::Uuid::new_v4().to_string();
 
@@ -619,23 +647,27 @@ impl NodeSharedInner {
                     Some(DiscoveryPubType::SrvPub(ref srv_pub)) => srv_pub,
                     _ => return,
                 };
-                if Some(service_publisher.request_type.as_str()) == request_type &&
-                    Some(service_publisher.response_type.as_str()) == response_type
+                if Some(service_publisher.request_type.as_str()) == request_type
+                    && Some(service_publisher.response_type.as_str()) == response_type
                 {
                     let replier_address = discovery_publisher.address.as_str();
                     let replier_id = service_publisher.socket_id.as_str();
-                    self.send_pending_remote_reqs(&topic, request_type, response_type,
-                                                  replier_address, replier_id);
-                    break
+                    self.send_pending_remote_reqs(
+                        &topic,
+                        request_type,
+                        response_type,
+                        replier_address,
+                        replier_id,
+                    );
+                    break;
                 }
             }
-        }else {
+        } else {
             // Discover the service.
             if let Err(err) = self.srv_discovery.discover(&topic) {
                 debug!("Failed to discover: {}", err);
             }
         }
-
     }
     // Return service results.
     fn on_reply(&mut self, reply_message: ReplyMessage) {
@@ -645,13 +677,16 @@ impl NodeSharedInner {
         let node_uuid = reply_message.node_uuid.as_str();
         let handler_uuid = reply_message.req_uuid.as_str();
 
-        if let Some(dispatcher) = self.response_dispatchers.get(topic, node_uuid, handler_uuid){
+        if let Some(dispatcher) = self
+            .response_dispatchers
+            .get(topic, node_uuid, handler_uuid)
+        {
             if dispatcher.is_remote() {
                 // Send the reply to the remote requester.
                 if let Err(err) = self.transporter.reply(reply_message) {
                     error!("Failed to reply: {}", err);
                 }
-            }else {
+            } else {
                 // Send the reply to the local requester.
                 if let Err(err) = dispatcher.dispatch(reply_message) {
                     error!("Failed to reply: {}", err);
@@ -665,12 +700,15 @@ impl NodeSharedInner {
     // Transport Event Handler
     fn on_subscription(&mut self, msg: PublishMessage) {
         trace!("on_subscription {:?}", msg);
-        if let Some(mut subscribers) = self.subscribers.filter(
-            &msg.topic, Some(&msg.msg_type), None)
+        if let Some(mut subscribers) =
+            self.subscribers
+                .filter(&msg.topic, Some(&msg.msg_type), None)
         {
             for subscriber in subscribers {
                 if !subscriber.is_remote() {
-                    subscriber.dispatch(msg.clone()).expect("Failed to dispatch message");
+                    subscriber
+                        .dispatch(msg.clone())
+                        .expect("Failed to dispatch message");
                 }
             }
         }
@@ -688,7 +726,7 @@ impl NodeSharedInner {
                 error!("Failed to register dispatcher: {}", err);
             }
             service.request(request_message).expect("Failed to request");
-        }else {
+        } else {
             error!("Service not found");
         }
     }
@@ -698,24 +736,35 @@ impl NodeSharedInner {
         // We won't receive a response because this is a oneway request.
 
         if let Some(dispatcher) =
-            self.response_dispatchers.get(&msg.topic, &msg.node_uuid, &msg.req_uuid)
+            self.response_dispatchers
+                .get(&msg.topic, &msg.node_uuid, &msg.req_uuid)
         {
-            dispatcher.dispatch(msg).expect("Failed to dispatch message");
+            dispatcher
+                .dispatch(msg)
+                .expect("Failed to dispatch message");
             dispatcher.done();
-        }else{
+        } else {
             error!("ResponseDispatcher not found");
         }
         self.response_dispatchers.clean(None);
     }
 
-    fn send_pending_remote_reqs(&mut self, topic: &str, request_type: Option<&str>, response_type: Option<&str>,
-                                replier_address: &str, replier_id: &str)
-    {
+    fn send_pending_remote_reqs(
+        &mut self,
+        topic: &str,
+        request_type: Option<&str>,
+        response_type: Option<&str>,
+        replier_address: &str,
+        replier_id: &str,
+    ) {
         if self.verbose {
             info!("Found a service call at [{}]", replier_address);
         }
 
-        if let Some(requests) = self.pending_requests.filter(topic, request_type, response_type) {
+        if let Some(requests) = self
+            .pending_requests
+            .filter(topic, request_type, response_type)
+        {
             for request in requests {
                 let mut request_message = match request.message() {
                     Some(request_message) => request_message,
@@ -732,7 +781,7 @@ impl NodeSharedInner {
                 if let Err(err) = self.response_dispatchers.register(dispatcher) {
                     error!("Failed to register dispatcher: {}", err);
                 }
-                if let Err(err) = self.transporter.request(request_message){
+                if let Err(err) = self.transporter.request(request_message) {
                     error!("Failed to request: {}", err);
                 }
             }
@@ -743,12 +792,14 @@ impl NodeSharedInner {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
     use prost::Message;
+    use std::time::Duration;
     use tokio::time;
-    use tracing::subscriber;
-    use tracing_subscriber::FmtSubscriber;
-    use crate::discovery::{DiscoveryMsgPublisher, DiscoveryPubType, DiscoveryScope, DiscoverySrvPublisher};
+    // use tracing::subscriber;
+    // use tracing_subscriber::FmtSubscriber;
+    use crate::discovery::{
+        DiscoveryMsgPublisher, DiscoveryPubType, DiscoveryScope, DiscoverySrvPublisher,
+    };
 
     use super::*;
 
@@ -769,9 +820,9 @@ mod tests {
 
     #[derive(Clone, PartialEq, ::prost::Message)]
     struct Person {
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub name: ::prost::alloc::string::String,
-        #[prost(int32, tag="2")]
+        #[prost(int32, tag = "2")]
         pub id: i32,
     }
 
@@ -794,23 +845,27 @@ mod tests {
             msgs_per_sec: u64::MAX,
         };
         let pub_type = DiscoveryPubType::MsgPub(message_publisher);
-        let sender = node_shared.advertise(DiscoveryPublisher{
-            topic: TOPIC.to_string(),
-            address: "".to_string(),
-            process_uuid: "".to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: Some(pub_type),
-        }).unwrap();
+        let sender = node_shared
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: "".to_string(),
+                process_uuid: "".to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: Some(pub_type),
+            })
+            .unwrap();
 
         let (tx, mut rx) = mpsc::unbounded_channel::<PublishMessage>();
 
-        node_shared.subscribe(SubscribeArgs {
-            n_uuid: N_UUID2.to_string(),
-            topic: TOPIC.to_string(),
-            msg_type: msg_type.to_string(),
-            sender: tx.clone(),
-        }).unwrap();
+        node_shared
+            .subscribe(SubscribeArgs {
+                n_uuid: N_UUID2.to_string(),
+                topic: TOPIC.to_string(),
+                msg_type: msg_type.to_string(),
+                sender: tx.clone(),
+            })
+            .unwrap();
 
         let recv_msg = Arc::new(Mutex::new(None));
         let m = recv_msg.clone();
@@ -824,14 +879,17 @@ mod tests {
         let data = Person {
             name: "Alice".to_string(),
             id: 1234,
-        }.encode_to_vec();
+        }
+        .encode_to_vec();
 
-        sender.send(NodeEvent::Publish(PublishMessage {
-            topic: TOPIC.to_string(),
-            msg_type: msg_type.to_string(),
-            data,
-            publisher_address: "unset".to_string()
-        })).unwrap();
+        sender
+            .send(NodeEvent::Publish(PublishMessage {
+                topic: TOPIC.to_string(),
+                msg_type: msg_type.to_string(),
+                data,
+                publisher_address: "unset".to_string(),
+            }))
+            .unwrap();
 
         time::sleep(Duration::from_millis(300)).await;
 
@@ -842,7 +900,6 @@ mod tests {
             assert_eq!(person.id, 1234);
             assert_eq!(person.name, "Alice");
         }
-
     }
 
     // Check that a node can pub & sub to another process.
@@ -867,14 +924,16 @@ mod tests {
             msgs_per_sec: u64::MAX,
         };
         let pub_type = DiscoveryPubType::MsgPub(message_publisher);
-        let sender = node_shared1.advertise(DiscoveryPublisher{
-            topic: TOPIC.to_string(),
-            address: "".to_string(),
-            process_uuid: "".to_string(),
-            node_uuid: N_UUID1.to_string(),
-            scope: DiscoveryScope::All as i32,
-            pub_type: Some(pub_type),
-        }).unwrap();
+        let sender = node_shared1
+            .advertise(DiscoveryPublisher {
+                topic: TOPIC.to_string(),
+                address: "".to_string(),
+                process_uuid: "".to_string(),
+                node_uuid: N_UUID1.to_string(),
+                scope: DiscoveryScope::All as i32,
+                pub_type: Some(pub_type),
+            })
+            .unwrap();
 
         let mut node_shared2 = NodeShared::new();
         node_shared2.p_uuid = P_UUID2.to_string();
@@ -883,28 +942,32 @@ mod tests {
         node_shared2.verbose = true;
         node_shared2.start();
 
-        let (tx, mut rx)
-            = mpsc::unbounded_channel::<PublishMessage>();
-        node_shared2.subscribe(SubscribeArgs {
-            n_uuid: "node_uuid".to_string(),
-            topic: TOPIC.to_string(),
-            msg_type: msg_type.to_string(),
-            sender: tx.clone(),
-        }).unwrap();
+        let (tx, mut rx) = mpsc::unbounded_channel::<PublishMessage>();
+        node_shared2
+            .subscribe(SubscribeArgs {
+                n_uuid: "node_uuid".to_string(),
+                topic: TOPIC.to_string(),
+                msg_type: msg_type.to_string(),
+                sender: tx.clone(),
+            })
+            .unwrap();
 
         tokio::spawn(async move {
             time::sleep(Duration::from_millis(300)).await;
             let data = Person {
                 name: "Alice".to_string(),
                 id: 1234,
-            }.encode_to_vec();
+            }
+            .encode_to_vec();
 
-            sender.send(NodeEvent::Publish(PublishMessage {
-                topic: TOPIC.to_string(),
-                msg_type: msg_type.to_string(),
-                data,
-                publisher_address: "unset".to_string()
-            })).unwrap();
+            sender
+                .send(NodeEvent::Publish(PublishMessage {
+                    topic: TOPIC.to_string(),
+                    msg_type: msg_type.to_string(),
+                    data,
+                    publisher_address: "unset".to_string(),
+                }))
+                .unwrap();
         });
 
         let msg = rx.recv().await.unwrap();
@@ -932,7 +995,7 @@ mod tests {
             response_type: "Person".to_string(),
         };
         let pub_type = DiscoveryPubType::SrvPub(service_publisher);
-        let discovery_publisher = DiscoveryPublisher{
+        let discovery_publisher = DiscoveryPublisher {
             topic: TOPIC.to_string(),
             address: "".to_string(),
             process_uuid: "".to_string(),
@@ -941,10 +1004,10 @@ mod tests {
             pub_type: Some(pub_type),
         };
 
-        let (tx, mut rx) =
-            mpsc::unbounded_channel::<RequestMessage>();
-        let sender =
-            node_shared.advertise_service(discovery_publisher, tx).unwrap();
+        let (tx, mut rx) = mpsc::unbounded_channel::<RequestMessage>();
+        let sender = node_shared
+            .advertise_service(discovery_publisher, tx)
+            .unwrap();
 
         tokio::spawn(async move {
             if let Some(msg) = rx.recv().await {
@@ -968,20 +1031,23 @@ mod tests {
         let data = Person {
             name: "Alice".to_string(),
             id: 1234,
-        }.encode_to_vec();
+        }
+        .encode_to_vec();
 
-        let receiver = node_shared.request(RequestMessage {
-            replier_address: None,
-            replier_id: "unset".to_string(),
-            topic: TOPIC.to_string(),
-            requester_address: "unset".to_string(),
-            requester_id: "unset".to_string(),
-            node_uuid: N_UUID1.to_string(),
-            req_uuid: "unset".to_string(),
-            data,
-            req_type: "Person".to_string(),
-            res_type: "Person".to_string(),
-        }).unwrap();
+        let receiver = node_shared
+            .request(RequestMessage {
+                replier_address: None,
+                replier_id: "unset".to_string(),
+                topic: TOPIC.to_string(),
+                requester_address: "unset".to_string(),
+                requester_id: "unset".to_string(),
+                node_uuid: N_UUID1.to_string(),
+                req_uuid: "unset".to_string(),
+                data,
+                req_type: "Person".to_string(),
+                res_type: "Person".to_string(),
+            })
+            .unwrap();
 
         // tokio::time::sleep(Duration::from_millis(300)).await;
 
@@ -1019,7 +1085,7 @@ mod tests {
             response_type: "Person".to_string(),
         };
         let pub_type = DiscoveryPubType::SrvPub(service_publisher);
-        let discovery_publisher = DiscoveryPublisher{
+        let discovery_publisher = DiscoveryPublisher {
             topic: TOPIC.to_string(),
             address: "".to_string(),
             process_uuid: "".to_string(),
@@ -1028,10 +1094,10 @@ mod tests {
             pub_type: Some(pub_type),
         };
 
-        let (tx, mut rx) =
-            mpsc::unbounded_channel::<RequestMessage>();
-        let sender =
-            node_shared1.advertise_service(discovery_publisher, tx).unwrap();
+        let (tx, mut rx) = mpsc::unbounded_channel::<RequestMessage>();
+        let sender = node_shared1
+            .advertise_service(discovery_publisher, tx)
+            .unwrap();
 
         tokio::spawn(async move {
             if let Some(msg) = rx.recv().await {
@@ -1055,20 +1121,23 @@ mod tests {
         let data = Person {
             name: "Alice".to_string(),
             id: 1234,
-        }.encode_to_vec();
+        }
+        .encode_to_vec();
 
-        let receiver = node_shared2.request(RequestMessage {
-            replier_address: None,
-            replier_id: "unset".to_string(),
-            topic: TOPIC.to_string(),
-            requester_address: "unset".to_string(),
-            requester_id: "unset".to_string(),
-            node_uuid: N_UUID2.to_string(),
-            req_uuid: "unset".to_string(),
-            data,
-            req_type: "Person".to_string(),
-            res_type: "Person".to_string(),
-        }).unwrap();
+        let receiver = node_shared2
+            .request(RequestMessage {
+                replier_address: None,
+                replier_id: "unset".to_string(),
+                topic: TOPIC.to_string(),
+                requester_address: "unset".to_string(),
+                requester_id: "unset".to_string(),
+                node_uuid: N_UUID2.to_string(),
+                req_uuid: "unset".to_string(),
+                data,
+                req_type: "Person".to_string(),
+                res_type: "Person".to_string(),
+            })
+            .unwrap();
 
         let msg = receiver.await.unwrap();
         let person = Person::decode(&msg.data[..]).unwrap();

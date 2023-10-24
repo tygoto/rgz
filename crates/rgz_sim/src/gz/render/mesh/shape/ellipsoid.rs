@@ -1,7 +1,7 @@
-use std::f32::consts::PI;
 use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_resource::PrimitiveTopology;
+use std::f32::consts::PI;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ellipsoid {

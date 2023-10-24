@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use std::fmt::{Debug};
+use std::fmt::Debug;
 use tokio::sync::oneshot;
 
 use crate::dispatcher::Dispatcher;
@@ -14,7 +14,7 @@ pub(crate) struct ResponseDispatcher {
     sender: Option<oneshot::Sender<ReplyMessage>>,
     remote_flag: bool,
     created: std::time::Instant,
-    done_flag: bool
+    done_flag: bool,
 }
 
 impl ResponseDispatcher {
@@ -32,7 +32,7 @@ impl ResponseDispatcher {
             sender,
             remote_flag,
             created: std::time::Instant::now(),
-            done_flag: false
+            done_flag: false,
         }
     }
 
@@ -42,7 +42,7 @@ impl ResponseDispatcher {
                 bail!("Failed to send: {:?}", err)
             }
             Ok(())
-        }else {
+        } else {
             bail!("Sender not found");
         }
     }

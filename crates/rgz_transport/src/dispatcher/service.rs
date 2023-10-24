@@ -1,9 +1,9 @@
 use anyhow::Result;
-use std::fmt::{Debug};
+use std::fmt::Debug;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::dispatcher::Dispatcher;
-use crate::transport::{RequestMessage};
+use crate::transport::RequestMessage;
 
 pub(crate) struct ServiceDispatcher {
     s_uuid: String,

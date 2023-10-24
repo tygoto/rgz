@@ -1,7 +1,7 @@
 use local_ip_address::list_afinet_netifas;
-use std::net::{ToSocketAddrs, IpAddr, Ipv4Addr};
-use std::str::FromStr;
 use std::env;
+use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs};
+use std::str::FromStr;
 
 /// Get the preferred local IP address.
 fn preferred_public_ip() -> Result<Ipv4Addr, String> {
@@ -13,7 +13,10 @@ fn preferred_public_ip() -> Result<Ipv4Addr, String> {
 
     if let Ok(host_ip) = hostname_to_ip(&host_name) {
         if host_ip.is_private() || host_ip.is_loopback() {
-            return Err(format!("{} is not a valid target: it is private or loopback.", host_ip));
+            return Err(format!(
+                "{} is not a valid target: it is private or loopback.",
+                host_ip
+            ));
         }
         // Get the complete list of compatible interfaces.
         if let Ok(interfaces) = determine_interfaces() {
@@ -22,7 +25,7 @@ fn preferred_public_ip() -> Result<Ipv4Addr, String> {
                 Ok(host_ip)
             } else {
                 Err(format!("{} is not a compatible interface", host_ip))
-            }
+            };
         }
     }
     Err(format!("No public IP address found for {}", host_name))
@@ -47,12 +50,12 @@ pub fn determine_host() -> Result<Ipv4Addr, Box<dyn std::error::Error>> {
     if let Ok(gz_ip) = env::var("GZ_IP") {
         if !gz_ip.is_empty() {
             let ip = Ipv4Addr::from_str(&gz_ip)?;
-            return Ok(ip)
+            return Ok(ip);
         }
     }
     // Second, try the preferred local and public IP address.
     if let Ok(public_ip) = preferred_public_ip() {
-        return Ok(public_ip)
+        return Ok(public_ip);
     }
 
     // Third, fall back on interface search, which will yield an IP address
@@ -63,7 +66,9 @@ pub fn determine_host() -> Result<Ipv4Addr, Box<dyn std::error::Error>> {
         }
     }
 
-    interfaces.first().map(|iface| *iface)
+    interfaces
+        .first()
+        .map(|iface| *iface)
         .ok_or_else(|| "No interfaces found".into())
 }
 
@@ -85,7 +90,9 @@ pub fn determine_interfaces() -> Result<Vec<Ipv4Addr>, Box<dyn std::error::Error
 pub fn hostname() -> String {
     whoami::hostname()
 }
-pub fn username() -> String { whoami::username() }
+pub fn username() -> String {
+    whoami::username()
+}
 
 #[cfg(test)]
 mod tests {
@@ -93,14 +100,12 @@ mod tests {
 
     #[test]
     fn test_hostname_to_ip() {
-
         let hostname = hostname();
         let ip_addresses = hostname_to_ip(&hostname).unwrap();
 
         // // env::set_var("GZ_IP", "0.0.0.0");
         // let host = determine_host();
         // assert!(!host.is_empty());
-
     }
 
     // #[test]
