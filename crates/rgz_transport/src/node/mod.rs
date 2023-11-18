@@ -14,6 +14,7 @@ const DEFAULT_DISCOVERY_IP: &str = "239.255.0.7";
 const DEFAULT_MSG_DISC_PORT: u16 = 10317;
 const DEFAULT_SRV_DISC_PORT: u16 = 10318;
 
+#[derive(Debug, Clone)]
 pub(crate) struct SubscribeArgs {
     n_uuid: String,
     topic: String,

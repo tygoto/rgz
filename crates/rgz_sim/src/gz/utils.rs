@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use rgz_msgs as msgs;
 
 pub(crate) fn vec3(vector3d: &msgs::Vector3d) -> Vec3 {
-    // Vec3::new(vector3d.x as f32, vector3d.y as f32, vector3d.z as f32)
     Vec3::new(-vector3d.y as f32, vector3d.z as f32, -vector3d.x as f32)
 }
 
@@ -23,7 +22,6 @@ pub(crate) fn scale3(scale: &msgs::Vector3d) -> Vec3 {
 }
 
 pub(crate) fn quat(quaternion: &msgs::Quaternion) -> Quat {
-    // Quat::from_xyzw(quaternion.x as f32, quaternion.y as f32, quaternion.z as f32, quaternion.w as f32)
     Quat::from_xyzw(
         -quaternion.y as f32,
         quaternion.z as f32,
@@ -67,3 +65,5 @@ pub(crate) fn color(color: Option<&msgs::Color>) -> Color {
         None => Color::default(),
     }
 }
+
+

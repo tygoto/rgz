@@ -1,4 +1,4 @@
-use anyhow::Result;
+
 use std::fmt::Debug;
 
 mod request;

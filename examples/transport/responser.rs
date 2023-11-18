@@ -4,17 +4,19 @@ use tokio::signal;
 use rgz::msgs::StringMsg;
 use rgz::transport::Node;
 
-async fn srv_echo(req: StringMsg) -> Result<StringMsg> {
-    println!("ECHO: {}", req.data);
-    Ok(req)
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
-    let topic = "/echo";
+    let topic = "/hello";
     let node = Node::new(None);
-    node.advertise_service(topic, srv_echo, None).await?;
+    node.advertise_service(topic, |req: StringMsg| {
+        let res = StringMsg {
+            data: format!("{}, World!", req.data),
+            ..Default::default()
+        };
+        Ok(res)
+    }, None)?;
+
+    println!("Press Ctrl-C to exit.");
     signal::ctrl_c().await?;
-    println!("ctrl-c received!");
     Ok(())
 }

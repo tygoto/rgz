@@ -1,6 +1,5 @@
 use anyhow::{bail, Result};
 use std::collections::HashMap;
-use std::ops::Deref;
 use std::time::Duration;
 
 use crate::dispatcher::{Dispatcher, PendingRequest, ResponseDispatcher, Subscriber};
@@ -185,8 +184,7 @@ impl CleanFunction for DispatcherStore<PendingRequest> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
+    // use super::*;
     #[test]
     fn test_register_handler() {}
 }

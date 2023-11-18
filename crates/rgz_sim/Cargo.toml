@@ -1,6 +1,6 @@
 [package]
 name = "rgz_sim"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 description = "Robot simulator compatible with Gazebo"
 license = "MIT OR Apache-2.0"
@@ -9,19 +9,22 @@ repository = "https://github.com/tygoto/rgz"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#bevy = "0.11.2"
-bevy = { version = "0.11.2", features = ["dynamic_linking"] }
-bevy_egui = "0.22"
-bevy_panorbit_camera = "0.8"
-bevy_debug_grid = "0.2"
+rgz_msgs = { path = "../rgz_msgs", version = "0.1.1"}
+rgz_transport = { path = "../rgz_transport", version = "0.2.0" }
 
+#bevy = "0.12.0"
+bevy = { version = "0.12.0", features = ["dynamic_linking"] }
+bevy_egui = "0.23.0"
+bevy_panorbit_camera = "0.9.0"
+bevy_debug_grid = "0.3"
 anyhow = "1.0"
-regex = "1.9.3"
-prost = "0.12"
+regex = "1.10.2"
+prost = "0.12.1"
 prost-types = "0.12"
-tokio = { version = "1.32.0", features = ["sync", "rt-multi-thread", "macros"] }
-rgz_msgs = { path = "../rgz_msgs", version = "0.1.0"}
-rgz_transport = { path = "../rgz_transport", version = "0.1.0" }
+tokio = { version = "1.33", features = ["sync", "rt-multi-thread", "macros"] }
+
+tracing-subscriber = "0.3.17"
+log = "0.4.20"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

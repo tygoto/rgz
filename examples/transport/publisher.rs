@@ -1,4 +1,3 @@
-use std::env;
 use std::time::Duration;
 
 use anyhow::Result;
@@ -6,14 +5,11 @@ use tokio::time::sleep;
 
 use rgz::msgs::StringMsg;
 use rgz::transport::Node;
-
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
-
-    // env::set_var("GZ_IP", "172.17.0.1");
 
     let topic = "/foo";
     let node = Node::new(None);

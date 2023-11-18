@@ -1,20 +1,16 @@
-use std::cmp::max;
 use std::collections::{HashSet, VecDeque};
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::thread::sleep;
-use std::time::{Duration, Instant};
+use std::time::{Duration};
 
 use anyhow::{bail, Result};
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 use zmq;
 
 /// Timeout used for receiving messages (ms.).
 const TIMEOUT: i64 = 250;
-
-/// The string type used for generic messages.
-const GENERIC_MESSAGE_TYPE: &str = "google.protobuf.Message";
 
 /// The high water mark of the receive message buffer.
 const DEFAULT_RCV_HWM: i32 = 1000;
@@ -52,7 +48,7 @@ pub(crate) struct ReplyMessage {
     pub node_uuid: String,
     pub req_uuid: String,
     pub data: Vec<u8>,
-    pub result: bool,
+    pub result: bool, // True when the service request was successful or false otherwise.
 }
 
 struct SubscribeEvent {
@@ -572,6 +568,7 @@ mod tests {
     use super::*;
     use prost::Message;
     use std::io::Cursor;
+    use std::time::SystemTime;
 
     const IP: &str = "127.0.0.1";
     const TOPIC: &str = "topic";
@@ -599,12 +596,17 @@ mod tests {
         let check = Arc::new(Mutex::new(None));
         let check2 = check.clone();
 
+        let now = SystemTime::now();
+        let now_clone = now.clone();
+
         tokio::spawn(async move {
             transporter2.start();
             transporter2.subscribe(Some(&address), None, Some(TOPIC), None);
             transporter2.set_subscription_handler(move |msg| {
                 if let Ok(person) = Person::decode(&mut Cursor::new(msg.data)) {
                     check2.lock().unwrap().replace(person);
+
+                    println!("elapsed: {:?}", now_clone.elapsed().unwrap());
                 }
             });
             tokio::time::sleep(Duration::from_millis(100)).await;
@@ -644,9 +646,12 @@ mod tests {
         let replier_address = transporter2.replier_address.clone();
         let replier_id = transporter2.replier_id.clone();
 
-        let (tx, mut rx) = mpsc::channel::<ReplyMessage>();
+        let now = SystemTime::now();
+        let now_clone = now.clone();
 
         thread::spawn(move || {
+            let (tx, mut rx) = mpsc::channel::<ReplyMessage>();
+
             transporter2.start();
             transporter2.set_request_handler(move |msg| {
                 if let Ok(mut person) = Person::decode(&mut Cursor::new(msg.data)) {
@@ -666,9 +671,11 @@ mod tests {
 
             if let Ok(msg) = rx.recv() {
                 transporter2.reply(msg).unwrap();
+                println!("req elapsed: {:?}", now_clone.elapsed().unwrap());
             }
             // sleep(Duration::from_millis(1000));
         });
+
         transporter1.start();
         tokio::time::sleep(Duration::from_millis(5)).await;
         let replier_address = replier_address.lock().unwrap().to_string();
@@ -676,6 +683,8 @@ mod tests {
         let check2 = check.clone();
 
         transporter1.set_response_handler(move |msg| {
+            println!("res elapsed: {:?}", now.elapsed().unwrap());
+
             if let Ok(person) = Person::decode(&mut Cursor::new(msg.data)) {
                 check2.lock().unwrap().replace(person);
             }

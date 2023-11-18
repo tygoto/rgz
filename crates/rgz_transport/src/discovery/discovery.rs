@@ -682,7 +682,7 @@ impl DiscoveryInner {
         match msg_type {
             DiscoveryType::Advertise => {
                 // Check scope of the topic.
-                if let Some(scope) = DiscoveryScope::from_i32(publisher.scope) {
+                if let Ok(scope) = DiscoveryScope::try_from(publisher.scope) {
                     if scope == DiscoveryScope::Process
                         || (scope == DiscoveryScope::Host && !is_sender_local)
                     {

@@ -9,6 +9,6 @@ pub(crate) struct PoseEvent {
 
 #[derive(Event)]
 pub(crate) enum SceneEvent {
-    Renew(msgs::Scene),
+    New(msgs::Scene),
     Update(msgs::Scene),
 }

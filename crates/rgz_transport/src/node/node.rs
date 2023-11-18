@@ -2,15 +2,12 @@ use std::future::Future;
 use std::marker::PhantomData;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
+
 use anyhow::{bail, Result};
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tokio::time::{timeout_at, Instant};
 use tracing::{error};
-
-use futures::stream::{Stream, StreamExt};
-use futures::channel::{mpsc as futures_mpsc};
-use futures::SinkExt;
 
 use crate::discovery::{
     DiscoveryMsgPublisher, DiscoveryPubType, DiscoveryPublisher, DiscoverySrvPublisher,
@@ -31,6 +28,7 @@ pub struct Node {
     // Custom options for this node.
     node_options: NodeOptions,
 }
+
 impl Node {
     pub fn new(options: Option<NodeOptions>) -> Self {
         let node_options = options.unwrap_or_default();
@@ -62,8 +60,8 @@ impl Node {
         topic: &str,
         options: Option<AdvertiseOptions>,
     ) -> Result<Publisher<T>>
-    where
-        T: GzMessage,
+        where
+            T: GzMessage,
     {
         let advertise_options = options.unwrap_or_default();
         let fully_qualified_topic = self.create_fully_qualified_topic(topic)?;
@@ -97,17 +95,15 @@ impl Node {
             event_sender,
         ))
     }
-    pub fn subscribe<T, F, Fut>(&mut self, topic: &str, cb: F) -> Result<()>
-    where
-        T: GzMessage + Default + 'static,
-        F: Fn(T) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<()>> + Send,
+
+    pub fn subscribe<T, F>(&mut self, topic: &str, mut cb: F) -> Result<()>
+        where
+            T: GzMessage + Default,
+            F: FnMut(T) + Send + 'static,
     {
         let fully_qualified_topic = self.create_fully_qualified_topic(topic)?;
-
         let (msg_sender, mut msg_receiver) =
             mpsc::unbounded_channel::<PublishMessage>();
-
         {
             let mut node_shared = self.node_shared.lock().unwrap();
             node_shared.subscribe(SubscribeArgs {
@@ -121,9 +117,7 @@ impl Node {
         tokio::spawn(async move {
             while let Some(mut msgs) = msg_receiver.recv().await {
                 if let Ok(msg) = T::decode(&msgs.data[..]) {
-                    if let Err(err) = cb(msg).await {
-                        error!("Failed to execute callback function: {}", err);
-                    }
+                    cb(msg);
                 } else {
                     error!("Failed to decode request");
                 }
@@ -132,86 +126,13 @@ impl Node {
         Ok(())
     }
 
-    pub fn subscribe_raw<F, Fut>(&mut self, topic: &str, msg_type: &str, cb: F) -> Result<()>
-    where
-        F: Fn(Vec<u8>) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<()>> + Send,
-    {
-        let fully_qualified_topic = self.create_fully_qualified_topic(topic)?;
-
-        let (msg_sender, mut msg_receiver) =
-                mpsc::unbounded_channel::<PublishMessage>();
-
-        {
-            let mut node_shared = self.node_shared.lock().unwrap();
-            node_shared.subscribe(SubscribeArgs {
-                n_uuid: self.n_uuid.to_string(),
-                topic: fully_qualified_topic.to_string(),
-                msg_type: msg_type.to_string(),
-                sender: msg_sender,
-            })?;
-        };
-
-        tokio::spawn(async move {
-            while let Some(mut msg) = msg_receiver.recv().await {
-                if let Err(err) = cb(msg.data).await {
-                    error!("Failed to execute callback function: {}", err);
-                }
-            }
-        });
-        Ok(())
-    }
-
-    pub fn subscribe_channel<T>(
-        &mut self,
-        topic: &str,
-    ) -> Result<impl Stream<Item = T> + Unpin>
-    where
-        T: GzMessage + Default + 'static,
-    {
-        let fully_qualified_topic = self.create_fully_qualified_topic(topic)?;
-
-        let (msg_sender, mut msg_receiver) =
-            mpsc::unbounded_channel::<PublishMessage>();
-
-        {
-            let mut node_shared = self.node_shared.lock().unwrap();
-            node_shared.subscribe(SubscribeArgs {
-                n_uuid: self.n_uuid.to_string(),
-                topic: fully_qualified_topic.to_string(),
-                msg_type: T::TYPE_NAME.to_string(),
-                sender: msg_sender,
-            })?;
-        };
-
-        let (mut sender, receiver) = futures_mpsc::channel::<T>(10);
-
-        tokio::spawn(async move {
-            while let Some(mut msgs) = msg_receiver.recv().await {
-                if let Ok(msg) = T::decode(&msgs.data[..]) {
-                    if let Err(err) = sender.send(msg).await {
-                        error!("Failed to send message: {}", err);
-                    }
-                } else {
-                    error!("Failed to decode request");
-                }
-            }
-        });
-
-        Ok(receiver)
-    }
-
-    pub async fn advertise_service<REQ, RES, F, Fut>(
-        &self,
-        topic: &str,
-        cb: F,
-        options: Option<AdvertiseOptions>,
+    pub fn advertise_service<REQ, RES, F>(
+        &self, topic: &str, mut cb: F, options: Option<AdvertiseOptions>,
     ) -> Result<()>
-    where
-        REQ: GzMessage + Default,
-        RES: GzMessage + Default,
-        F: Fn(REQ) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<RES>> + Send + Sync + 'static,
+        where
+            REQ: GzMessage + Default,
+            RES: GzMessage + Default,
+            F: FnMut(REQ) -> Result<RES> + Send + 'static,
     {
         let advertise_options = options.unwrap_or_default();
 
@@ -241,8 +162,7 @@ impl Node {
             pub_type: Some(pub_type),
         };
 
-        let (request_sender, mut request_receiver) =
-            tokio::sync::mpsc::unbounded_channel::<RequestMessage>();
+        let (request_sender, mut request_receiver) = mpsc::unbounded_channel::<RequestMessage>();
 
         let event_sender = {
             let mut node_shared = self.node_shared.lock().unwrap();
@@ -252,24 +172,31 @@ impl Node {
         tokio::spawn(async move {
             while let Some(mut msgs) = request_receiver.recv().await {
                 if let Ok(msg) = REQ::decode(&msgs.data[..]) {
-                    if let Ok(res) = cb(msg).await {
-                        let address = msgs.requester_address;
-                        event_sender
-                            .send(NodeEvent::Reply(ReplyMessage {
-                                requester_address: Some(address),
-                                requester_id: msgs.requester_id.to_string(),
-                                topic: msgs.topic.to_string(),
-                                node_uuid: msgs.node_uuid.to_string(),
-                                req_uuid: msgs.req_uuid.to_string(),
-                                data: res.encode_to_vec(),
-                                result: false,
-                            }))
-                            .unwrap();
+                    let mut data = vec![];
+                    let mut result = false;
+
+                    if let Ok(res) = cb(msg) {
+                        data = res.encode_to_vec();
+                        result = true;
                     } else {
-                        eprintln!("Failed to process request");
+                        error!("Failed to call service");
+                    }
+
+                    let address = msgs.requester_address;
+                    if let Err(e) = event_sender.send(NodeEvent::Reply(ReplyMessage {
+                        requester_address: Some(address),
+                        requester_id: msgs.requester_id.to_string(),
+                        topic: msgs.topic.to_string(),
+                        node_uuid: msgs.node_uuid.to_string(),
+                        req_uuid: msgs.req_uuid.to_string(),
+                        data,
+                        result,
+                    }))
+                    {
+                        error!("Failed to send reply: {}", e);
                     }
                 } else {
-                    eprintln!("Failed to decode request");
+                    error!("Failed to decode request");
                 }
             }
         });
@@ -281,10 +208,10 @@ impl Node {
         topic: &str,
         request: Option<REQ>,
         timeout: Option<Duration>,
-    ) -> Result<RES>
-    where
-        REQ: GzMessage + Default,
-        RES: GzMessage + Default,
+    ) -> Result<Option<RES>>
+        where
+            REQ: GzMessage + Default,
+            RES: GzMessage + Default,
     {
         let timeout = timeout.unwrap_or(Duration::from_millis(1000));
 
@@ -321,8 +248,12 @@ impl Node {
         let deadline = Instant::now() + timeout;
         match timeout_at(deadline, response_receiver).await {
             Ok(Ok(msg)) => {
-                let res = RES::decode(&msg.data[..])?;
-                Ok(res)
+                if msg.result {
+                    let res = RES::decode(&msg.data[..])?;
+                    Ok(Some(res))
+                } else {
+                    Ok(None)
+                }
             }
             Err(_) => bail!("Did not receive value within {} ms", timeout.as_millis()),
             _ => bail!("Failed to receive value"),
@@ -341,8 +272,8 @@ pub struct Publisher<T> {
 }
 
 impl<T> Publisher<T>
-where
-    T: GzMessage,
+    where
+        T: GzMessage,
 {
     fn new(topic: &str, options: AdvertiseOptions, sender: UnboundedSender<NodeEvent>) -> Self {
         let is_ready = Arc::new(AtomicBool::new(false));
@@ -383,4 +314,129 @@ where
 
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+    use tokio::time::sleep;
+    use rgz_msgs::StringMsg;
+
+    use futures::stream::StreamExt;
+    use futures::channel::mpsc::channel as futures_channel;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_pub_sub() {
+        let topic = "/foo";
+        let mut node = Node::new(None);
+
+        let recv_msg = Arc::new(Mutex::new(None));
+        let m = recv_msg.clone();
+        node.subscribe(topic, move |msg: StringMsg| {
+            *m.lock().unwrap() = Some(msg);
+        }).unwrap();
+
+        let publisher = node.advertise::<StringMsg>(topic, None).unwrap();
+        while !publisher.is_ready() {
+            println!("Waiting for publisher to be ready...");
+            sleep(Duration::from_millis(200)).await;
+        }
+
+        let str_msg = StringMsg {
+            data: "hello world".to_string(),
+            ..Default::default()
+        };
+        publisher.publish(str_msg).unwrap();
+
+        sleep(Duration::from_millis(100)).await;
+
+        {
+            let msg = recv_msg.lock().unwrap();
+            assert_eq!(msg.is_some(), true);
+            let string_msg = msg.as_ref().unwrap();
+            assert_eq!(string_msg.data, "hello world".to_string());
+        }
+    }
+
+    #[tokio::test]
+    async fn test_pub_sub_stream() {
+        let topic = "/foo";
+        let mut node = Node::new(None);
+
+        let (mut sender, mut receiver) = futures_channel::<StringMsg>(10);
+
+        node.subscribe(topic, move |msg: StringMsg| {
+            if let Err(e) = sender.try_send(msg) {
+                eprintln!("error: {}", e);
+            }
+        }).unwrap();
+
+        let publisher = node.advertise::<StringMsg>(topic, None).unwrap();
+        while !publisher.is_ready() {
+            println!("Waiting for publisher to be ready...");
+            sleep(Duration::from_millis(200)).await;
+        }
+
+        for i in 0..10 {
+            let str_msg = StringMsg {
+                data: format!("hello world: {}", i),
+                ..Default::default()
+            };
+            publisher.publish(str_msg).unwrap();
+            let msg = receiver.next().await.unwrap();
+            assert_eq!(msg.data, format!("hello world: {}", i));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_req_res() {
+        let topic = "/echo";
+        let node = Node::new(None);
+        node.advertise_service(topic, move |req: StringMsg| {
+            Ok(req)
+        }, None).unwrap();
+
+        let str_msg = StringMsg {
+            data: "HELLO".to_string(),
+            ..Default::default()
+        };
+        let request = Some(str_msg);
+        let timeout = Some(Duration::from_secs(1));
+        let res = node
+            .request::<StringMsg, StringMsg>(topic, request, timeout)
+            .await.unwrap();
+
+        assert_eq!(res.is_some(), true);
+        let string_msg = res.unwrap();
+        assert_eq!(string_msg.data, "HELLO".to_string());
+    }
+
+    #[tokio::test]
+    async fn test_req_res_error() {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::INFO)
+            .init();
+
+        let topic = "/echo";
+        let node = Node::new(None);
+        node.advertise_service(topic, move |req: StringMsg| {
+            bail!("error");
+            Ok(req)
+        }, None).unwrap();
+
+        let str_msg = StringMsg {
+            data: "HELLO".to_string(),
+            ..Default::default()
+        };
+        let request = Some(str_msg);
+        let timeout = Some(Duration::from_secs(1));
+        let res = node
+            .request::<StringMsg, StringMsg>(topic, request, timeout)
+            .await.unwrap();
+
+        assert_eq!(res.is_some(), false);
+    }
+
 }

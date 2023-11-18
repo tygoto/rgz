@@ -1,10 +1,11 @@
-use std::borrow::BorrowMut;
+// use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{env, process};
 
 use anyhow::{bail, Result};
 use once_cell::sync::Lazy;
+use prost::bytes::Buf;
 use tokio::select;
 
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
@@ -13,7 +14,7 @@ use tokio::sync::oneshot;
 use tracing::{debug, error, info, trace};
 
 use crate::discovery::{
-    Discovery, DiscoveryMsgPublisher, DiscoveryPubType, DiscoveryPublisher, DiscoverySrvPublisher,
+    Discovery, DiscoveryPubType, DiscoveryPublisher,
     DiscoveryStore,
 };
 use crate::dispatcher::{
@@ -315,8 +316,7 @@ impl NodeSharedInner {
 
         loop {
             select! {
-                Some(event) = self.discovery_event_receiver.recv() => {
-                    let discovery_event: DiscoveryEvent = event;
+                Some(discovery_event) = self.discovery_event_receiver.recv() => {
                     match discovery_event {
                         DiscoveryEvent::Connection(discovery_publisher) => {
                             self.on_connection(discovery_publisher);
@@ -339,8 +339,7 @@ impl NodeSharedInner {
                     }
                 }
 
-                Some(event) = self.node_event_receiver.recv() => {
-                    let node_event: NodeEvent = event;
+                Some(node_event) = self.node_event_receiver.recv() => {
                     match node_event {
                         NodeEvent::Advertise(discovery_publisher) => {
                             self.on_advertise(discovery_publisher);
@@ -364,8 +363,7 @@ impl NodeSharedInner {
                     }
                 }
 
-                Some(event) = self.transport_event_receiver.recv() => {
-                    let transport_event: TransportEvent = event;
+                Some(transport_event) = self.transport_event_receiver.recv() => {
                     match transport_event {
                         TransportEvent::Subscription(msg) => {
                             self.on_subscription(msg);
@@ -793,7 +791,7 @@ impl NodeSharedInner {
 #[cfg(test)]
 mod tests {
     use prost::Message;
-    use std::time::Duration;
+    use std::time::{Duration, SystemTime};
     use tokio::time;
     // use tracing::subscriber;
     // use tracing_subscriber::FmtSubscriber;
@@ -984,6 +982,9 @@ mod tests {
             .with_max_level(tracing::Level::INFO)
             .init();
 
+        let now = SystemTime::now();
+        let now_clone = now.clone();
+
         let mut node_shared = NodeShared::new();
         node_shared.p_uuid = P_UUID1.to_string();
         node_shared.start();
@@ -1023,10 +1024,9 @@ mod tests {
                     result: true,
                 };
                 sender.send(NodeEvent::Reply(reply)).unwrap();
+                println!("Elapsed1: {:?}", now_clone.elapsed().unwrap());
             }
         });
-
-        time::sleep(Duration::from_millis(100)).await;
 
         let data = Person {
             name: "Alice".to_string(),
@@ -1049,20 +1049,20 @@ mod tests {
             })
             .unwrap();
 
-        // tokio::time::sleep(Duration::from_millis(300)).await;
-
         let msg = receiver.await.unwrap();
         let person = Person::decode(&msg.data[..]).unwrap();
+
+        println!("Elapsed2: {:?}", now.elapsed().unwrap());
+
         assert_eq!(person.id, 1234);
         assert_eq!(person.name, "Bob");
     }
 
     #[tokio::test]
     async fn test_req_res_another_process() {
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::INFO)
-            .init();
-
+        // tracing_subscriber::fmt()
+        //     .with_max_level(tracing::Level::INFO)
+        //     .init();
         let mut node_shared1 = NodeShared::new();
         node_shared1.p_uuid = P_UUID1.to_string();
         node_shared1.discovery_ip = IP.to_string();
@@ -1116,13 +1116,13 @@ mod tests {
             }
         });
 
-        time::sleep(Duration::from_millis(100)).await;
-
         let data = Person {
             name: "Alice".to_string(),
             id: 1234,
         }
         .encode_to_vec();
+
+        let now = SystemTime::now();
 
         let receiver = node_shared2
             .request(RequestMessage {
@@ -1141,6 +1141,7 @@ mod tests {
 
         let msg = receiver.await.unwrap();
         let person = Person::decode(&msg.data[..]).unwrap();
+        println!("Elapsed: {:?}", now.elapsed().unwrap());
         assert_eq!(person.id, 1234);
         assert_eq!(person.name, "Bob");
     }

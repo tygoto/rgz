@@ -1,29 +1,21 @@
 use anyhow::Result;
 use rgz::msgs::StringMsg;
 use rgz::transport::Node;
-use std::env;
 use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
-
-    let topic = "/echo";
-    // env::set_var("GZ_VERBOSE", "1");
-
+    let topic = "/hello";
     let node = Node::new(None);
 
     let str_msg = StringMsg {
-        data: "HELLO".to_string(),
+        data: "Hello".to_string(),
         ..Default::default()
     };
     let request = Some(str_msg);
-    let timeout = Some(Duration::from_secs(1));
+    let timeout = Some(Duration::from_millis(3000));
     let res = node
-        .request::<StringMsg, StringMsg>(topic, request, timeout)
-        .await?;
+        .request::<StringMsg, StringMsg>(topic, request, timeout).await?;
     println!("RES: {:?}", res);
     Ok(())
 }
